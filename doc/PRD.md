@@ -28,13 +28,13 @@ An AI-powered application to help users improve speaking and listening skills th
 
 ### 3.3. Post-Session Review
 - **Summary**: High-level recap of the conversation.
-- **Detailed Analysis**: Line-by-line grammar and vocabulary feedback (JSON format from LLM).
+- **Detailed Analysis**: Line-by-line grammar and vocabulary feedback (matched from JSON format from LLM).
 - **History**: Session log saved for review.
 
 ## 4. User Interface
 - **Practice Tab**: Main entry point for sessions.
 - **History Tab**: List of past conversations.
-- **Settings Tab**: Configuration (LLM API, Languages, Proficiency).
+- **Settings Tab**: Configuration (LLM config (base url, model name, API), Languages, Proficiency).
 
 ## 5. System Prompts
 Modularized prompts for distinct tasks:

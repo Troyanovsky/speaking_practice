@@ -38,7 +38,7 @@ class SessionManager:
         user_text = await asr_service.transcribe(audio_file_path)
         
         # Check for stop word (mock logic)
-        if "stop" in user_text.lower():
+        if "stop session" in user_text.lower():
             session["is_active"] = False
             return TurnResponse(
                 user_text=user_text,
