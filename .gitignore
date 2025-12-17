@@ -1,0 +1,33 @@
+# General
+.DS_Store
+.idea/
+.vscode/
+
+# Python / Backend
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.env
+venv/
+env/
+.venv/
+backend/app/data/uploads/*
+backend/app/data/outputs/*
+!backend/app/data/uploads/.gitkeep
+!backend/app/data/outputs/.gitkeep
+backend/app/data/*.json
+backend/app/data/*.db
+
+# Node / Frontend
+node_modules/
+dist/
+build/
+.npm/
+*.log
+
+# AI Models (large files)
+*.pt
+*.pth
+*.onnx
+*.bin

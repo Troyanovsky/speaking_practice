@@ -1,0 +1,31 @@
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+
+export const api = axios.create({
+    baseURL: API_URL,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
+
+export const sessionApi = {
+    startSession: async (data: { primary_language: string, target_language: string, proficiency_level: string }) => {
+        const response = await api.post('/session/start', data);
+        return response.data;
+    },
+    sendTurn: async (sessionId: string, audioFile: File) => {
+        const formData = new FormData();
+        formData.append('audio', audioFile);
+        const response = await api.post(`/session/${sessionId}/turn`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    },
+    endSession: async (sessionId: string) => {
+        const response = await api.post(`/session/${sessionId}/end`);
+        return response.data;
+    }
+};
