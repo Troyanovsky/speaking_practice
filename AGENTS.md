@@ -21,6 +21,23 @@ npm install
 npm run dev      # Development server (typically http://localhost:5173)
 npm run build    # Production build
 npm run lint     # ESLint checking
+npm test         # Run frontend tests
+```
+
+## Testing
+
+### Backend
+Run pytest from the backend directory:
+```bash
+cd backend
+pytest
+```
+
+### Frontend
+Run vitest from the frontend directory:
+```bash
+cd frontend
+npm test
 ```
 
 ## Architecture Overview
@@ -93,12 +110,10 @@ VITE_API_URL=http://localhost:8000/api/v1
 ## Development Notes
 
 - New features and issues are recorded in `doc/ISSUES.json`. An issue should only be marked as `passes` when it is fully implemented and tested (auto or by human)
+- Add proper tests and pass the tests for new features/modifications.
 - Active session state is maintained in-memory (`session_manager.py`) - not persistent across restarts
 - Completed session history is persisted to JSON (`history_service.py`) - survives server restarts
 - Static file serving is handled by FastAPI's `StaticFiles` middleware
 - CORS is configured to allow all origins in development
 - The architecture follows a clean separation between API layer and business logic
 - Frontend uses optimistic UI updates for better user experience
-- Language settings (primary/target languages and CEFR level) are selected by users in the UI before starting a session
-- LLM service generates context-aware responses based on user's proficiency level and language settings
-- The system supports any OpenAI-compatible LLM provider through configuration
