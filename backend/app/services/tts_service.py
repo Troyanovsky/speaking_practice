@@ -3,20 +3,22 @@ import uuid
 import soundfile as sf
 from app.core.config import settings
 
-pipeline_object = None
-
-try:
-    from kokoro import KPipeline
-    # Initialize pipeline for US English ('a') by default
-    # Ideally, this should be dynamic based on language, but for MVP sticking to 'a'
-    print("Loading Kokoro Pipeline...")
-    pipeline_object = KPipeline(lang_code='a') 
-except ImportError:
-    print("Kokoro library not installed. Falling back to Mock.")
-
 class TTSService:
+    def __init__(self):
+        self.pipeline_object = None
+
+    def load_model(self):
+        try:
+            from kokoro import KPipeline
+            # Initialize pipeline for US English ('a') by default
+            # Ideally, this should be dynamic based on language, but for MVP sticking to 'a'
+            print("Loading Kokoro Pipeline...")
+            self.pipeline_object = KPipeline(lang_code='a') 
+        except ImportError:
+            print("Kokoro library not installed. Falling back to Mock.")
+
     async def synthesize(self, text: str) -> str:
-        if pipeline_object is None:
+        if self.pipeline_object is None:
             return "/static/mock_audio.wav"
 
         try:
@@ -26,7 +28,7 @@ class TTSService:
             
             # Generate audio
             # voice='af_heart' is a good default
-            generator = pipeline_object(text, voice='af_heart', speed=1, split_pattern=r'\n+')
+            generator = self.pipeline_object(text, voice='af_heart', speed=1, split_pattern=r'\n+')
             
             # Concatenate audio chunks (simplification: assume single chunk or taking first useful)
             # A real impl might need to stitch if text is long

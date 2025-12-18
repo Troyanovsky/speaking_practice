@@ -3,9 +3,18 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.v1.api import api_router
+from app.services.asr_service import asr_service
+from app.services.tts_service import tts_service
 import os
 
 app = FastAPI(title=settings.PROJECT_NAME)
+
+@app.on_event("startup")
+async def startup_event():
+    print("Starting up... Loading AI models.")
+    asr_service.load_model()
+    tts_service.load_model()
+    print("AI models loaded.")
 
 # CORS
 app.add_middleware(

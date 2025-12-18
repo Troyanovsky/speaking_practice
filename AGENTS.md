@@ -92,6 +92,7 @@ VITE_API_URL=http://localhost:8000/api/v1
 
 ## Development Notes
 
+- New features and issues are recorded in `doc/ISSUES.json`. An issue should only be marked as `passes` when it is fully implemented and tested (auto or by human)
 - Active session state is maintained in-memory (`session_manager.py`) - not persistent across restarts
 - Completed session history is persisted to JSON (`history_service.py`) - survives server restarts
 - Static file serving is handled by FastAPI's `StaticFiles` middleware
