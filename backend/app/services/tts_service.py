@@ -37,7 +37,7 @@ class TTSService:
                 gc.collect() # Help clear memory
             
             print(f"Loading Kokoro Pipeline for lang_code: {lang_code}")
-            self.pipeline_object = KPipeline(lang_code=lang_code) 
+            self.pipeline_object = KPipeline(lang_code=lang_code,repo_id='hexgrad/Kokoro-82M') 
             self.current_lang_code = lang_code
         except ImportError:
             print("Kokoro library not installed. Using Mock logic.")
