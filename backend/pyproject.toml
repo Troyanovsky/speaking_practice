@@ -24,6 +24,7 @@ dependencies = [
     "typer",
     "parakeet-mlx; sys_platform == 'darwin'",
     "nemo_toolkit[asr]; sys_platform != 'darwin'",
+    "hf-transfer>=0.1.9",
 ]
 
 [project.optional-dependencies]
