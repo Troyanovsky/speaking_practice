@@ -1,15 +1,15 @@
 {
   "issues": [
     {
-      "category": "Backend Architecture",
-      "description": "Audio File Management",
-      "expected_behavior": "Implement cleanup job to delete uploaded and generated audio files older than X hours or after session ends to prevent disk space exhaustion. Make the expiration time a user setting.",
+      "category": "Security",
+      "description": "Audio File Upload Path Issue",
+      "expected_behavior": "Fix audio.filename handling which may be None, and add filename sanitization to prevent path traversal attacks in session.py:17",
       "passes": false
     },
     {
-      "category": "Backend Architecture",
-      "description": "Error Handling in Services",
-      "expected_behavior": "Implement strict error logging and expose specific error codes to the client so UI can show appropriate error messages instead of catching broad Exceptions",
+      "category": "Security",
+      "description": "Missing Audio File Extension Validation",
+      "expected_behavior": "Add validation to ensure only audio file formats are accepted in upload endpoints to prevent arbitrary file uploads",
       "passes": false
     },
     {
@@ -19,9 +19,63 @@
       "passes": false
     },
     {
+      "category": "Production Bug",
+      "description": "Hardcoded Localhost URLs",
+      "expected_behavior": "Replace hardcoded localhost URLs with configurable API base URL that works in production environments",
+      "passes": false
+    },
+    {
+      "category": "Backend Bug",
+      "description": "Session Memory Leak",
+      "expected_behavior": "Implement session cleanup mechanism to remove completed sessions from memory after a timeout to prevent memory exhaustion",
+      "passes": false
+    },
+    {
+      "category": "Backend Architecture",
+      "description": "Audio File Management",
+      "expected_behavior": "Implement cleanup job to delete uploaded and generated audio files older than X hours or after session ends to prevent disk space exhaustion. Make the expiration time a user setting.",
+      "passes": false
+    },
+    {
+      "category": "Backend Bug",
+      "description": "TTS Error Audio File Missing",
+      "expected_behavior": "Create or ensure error.wav file exists at /static/error.wav path, or implement proper error handling for missing error audio",
+      "passes": false
+    },
+    {
+      "category": "Backend Bug",
+      "description": "Settings File Path Construction",
+      "expected_behavior": "Fix complex relative path construction in settings_service.py to use absolute paths consistently and prevent path resolution issues",
+      "passes": false
+    },
+    {
+      "category": "Backend Architecture",
+      "description": "Error Handling in Services",
+      "expected_behavior": "Implement strict error logging and expose specific error codes to the client so UI can show appropriate error messages instead of catching broad Exceptions",
+      "passes": false
+    },
+    {
+      "category": "Frontend Bug",
+      "description": "Missing API Error Handling",
+      "expected_behavior": "Implement global error handling in API client to show user-friendly error messages instead of silent failures",
+      "passes": false
+    },
+    {
+      "category": "Backend Bug",
+      "description": "Synchronous File Operations in Async Context",
+      "expected_behavior": "Replace synchronous file operations with async alternatives (aiofiles) to prevent blocking the event loop",
+      "passes": false
+    },
+    {
       "category": "UX",
       "description": "High Latency Due to Sequential Processing",
       "expected_behavior": "Implement optimistic UI to reduce perception of waiting time (currently Upload + Transcribe + LLM + Synthesize + Download)",
+      "passes": false
+    },
+    {
+      "category": "Backend Bug",
+      "description": "TTS Language Support Gap",
+      "expected_behavior": "Add backend validation to ensure frontend language selections match supported languages in LANGUAGE_CONFIG (English, Spanish, French, Italian, Portuguese) and verify frontend only shows supported options",
       "passes": false
     }
   ]
