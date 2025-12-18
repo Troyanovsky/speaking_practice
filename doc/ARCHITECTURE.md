@@ -34,8 +34,8 @@ speaking_practice/
 │   │       └── settings.py
 │   ├── data/                 # Local persistence (JSON/SQLite)
 │   ├── tests/                # Backend tests
-│   ├── requirements.txt
-│   └── pyproject.toml
+│   ├── pyproject.toml
+│   └── uv.lock
 │
 ├── frontend/                 # React/Tailwind Frontend
 │   ├── src/

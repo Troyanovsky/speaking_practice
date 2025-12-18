@@ -36,11 +36,12 @@ An AI-powered application to help users improve speaking and listening skills th
 2. Configure Environment:
    Create a `.env` file in `backend/` and add your LLM configuration (see [below](#configure-environment) for options).
 
-3. Run the server:
+3. Install dependencies and run the server:
    ```bash
+   uv sync
    uv run uvicorn app.main:app --reload
    ```
-   > **Note**: `uv` will automatically create a virtual environment and install dependencies from `requirements.txt` on the first run. This includes platform-specific ASR libraries (`parakeet-mlx` for Mac, `nemo_toolkit` for Windows). Ensure you have `ffmpeg` installed on your system.
+   > **Note**: `uv` will automatically create a virtual environment and install dependencies from `pyproject.toml` on the first run. This includes platform-specific ASR libraries (`parakeet-mlx` for Mac, `nemo_toolkit` for Windows). Ensure you have `ffmpeg` installed on your system.
 
 #### Configure Environment
 Create a `.env` file in `backend/` with your settings:
