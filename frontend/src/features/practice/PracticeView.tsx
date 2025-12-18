@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { sessionApi } from '../../api/client';
+import { sessionApi, settingsApi } from '../../api/client';
 import type { Turn, SessionCreate } from '../../types';
 import AudioRecorder from '../../components/AudioRecorder';
 
@@ -20,6 +20,22 @@ const PracticeView: React.FC = () => {
 
     const [proficiencyLevel, setProficiencyLevel] = useState('A1');
     const [stopWord, setStopWord] = useState('stop session');
+
+    // Load defaults from backend settings
+    useEffect(() => {
+        const loadDefaults = async () => {
+            try {
+                const settings = await settingsApi.getSettings();
+                setPrimaryLanguage(settings.primary_language);
+                setTargetLanguage(settings.target_language);
+                setProficiencyLevel(settings.proficiency_level);
+                setStopWord(settings.stop_word);
+            } catch (error) {
+                console.error("Failed to load settings defaults:", error);
+            }
+        };
+        loadDefaults();
+    }, []);
 
     const startSession = async () => {
         setIsLoading(true);

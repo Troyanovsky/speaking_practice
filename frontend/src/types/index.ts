@@ -34,3 +34,13 @@ export interface SessionAnalysis {
     summary: string;
     feedback: Feedback[];
 }
+
+export interface UserSettings {
+    primary_language: string;
+    target_language: string;
+    proficiency_level: string;
+    stop_word: string;
+    llm_base_url?: string;
+    llm_api_key?: string;
+    llm_model?: string;
+}

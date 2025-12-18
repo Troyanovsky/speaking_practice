@@ -72,6 +72,11 @@ An AI-powered application to help users improve speaking and listening skills th
    ```
    The API will be available at `http://localhost:8000`. API Docs at `http://localhost:8000/docs`.
 
+### Security Note
+
+> [!CAUTION]
+> This application stores sensitive information, including API keys, in a local JSON file (`backend/app/data/user_settings.json`). This file is not encrypted. This storage method is intended for **local single-user use only**. Do not deploy this application to a public server without implementing a secure storage solution for credentials.
+
 ### 2. Frontend Setup
 
 1. Navigate to the frontend directory:

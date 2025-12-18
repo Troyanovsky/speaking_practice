@@ -4,16 +4,25 @@ from openai import AsyncOpenAI
 from app.schemas.session import SessionAnalysis
 from app.core.config import settings
 
+from app.services.settings_service import settings_service
+
 class LLMService:
     def __init__(self):
-        self.client = AsyncOpenAI(
-            api_key=settings.LLM_API_KEY,
-            base_url=settings.LLM_BASE_URL
+        # Client is now created dynamically per request to support setting changes
+        pass
+
+    def _get_client(self):
+        user_settings = settings_service.get_settings()
+        client = AsyncOpenAI(
+            api_key=user_settings.llm_api_key,
+            base_url=user_settings.llm_base_url
         )
-        self.model = settings.LLM_MODEL
+        return client, user_settings.llm_model
 
     async def generate_greeting(self, target_language: str, proficiency_level: str) -> str:
         """Generate an LLM-powered greeting that considers language and proficiency."""
+        client, model = self._get_client()
+        
         system_prompt = f"""You are a helpful language learning assistant for {target_language} at {proficiency_level} level.
 
 Generate a friendly greeting that:
@@ -26,8 +35,8 @@ Keep your response appropriate for a {proficiency_level} learner.
 Respond in {target_language}. Keep the greeting concise (2-3 sentences)."""
 
         try:
-            response = await self.client.chat.completions.create(
-                model=self.model,
+            response = await client.chat.completions.create(
+                model=model,
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": "Generate a greeting to start the practice session."}
@@ -43,6 +52,8 @@ Respond in {target_language}. Keep the greeting concise (2-3 sentences)."""
                            target_language: str = "English",
                            proficiency_level: str = "B1") -> str:
         """Get LLM response with user context for language and proficiency."""
+        client, model = self._get_client()
+        
         system_prompt = f"""You are a helpful language learning assistant helping a user practice {target_language} at {proficiency_level} level.
 
 Adjust your language complexity to match their proficiency.
@@ -54,8 +65,8 @@ Respond in {target_language}."""
         messages.extend(history)
         
         try:
-            response = await self.client.chat.completions.create(
-                model=self.model,
+            response = await client.chat.completions.create(
+                model=model,
                 messages=messages
             )
             return response.choices[0].message.content
@@ -64,14 +75,15 @@ Respond in {target_language}."""
             return "I apologize, but I'm having trouble connecting to my brain right now."
 
     async def generate_summary(self, history: List[Dict[str, str]]) -> str:
+        client, model = self._get_client()
         messages = [{"role": "system", "content": "Summarize the following conversation in 2-3 sentences."}]
         # Convert history dicts to string for summary context
         conversation_text = "\n".join([f"{h['role']}: {h['content']}" for h in history])
         messages.append({"role": "user", "content": conversation_text})
 
         try:
-            response = await self.client.chat.completions.create(
-                model=self.model,
+            response = await client.chat.completions.create(
+                model=model,
                 messages=messages
             )
             return response.choices[0].message.content
@@ -79,6 +91,7 @@ Respond in {target_language}."""
             return "Summary unavailable."
 
     async def analyze_grammar(self, history: List[Dict[str, str]]) -> SessionAnalysis:
+        client, model = self._get_client()
         prompt = """
         Analyze the user's grammar and vocabulary in the following conversation.
         Return a JSON object with the following structure:
@@ -98,8 +111,8 @@ Respond in {target_language}."""
         conversation_text = "\n".join([f"{h['role']}: {h['content']}" for h in history])
         
         try:
-            response = await self.client.chat.completions.create(
-                model=self.model,
+            response = await client.chat.completions.create(
+                model=model,
                 messages=[
                     {"role": "system", "content": prompt},
                     {"role": "user", "content": conversation_text}

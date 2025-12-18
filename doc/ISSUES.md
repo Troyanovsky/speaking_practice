@@ -17,7 +17,7 @@
 |---|-------|-------------|
 | ~~5~~ | ~~Hardcoded Languages~~ | ~~Primary language, target language, and proficiency level are hardcoded; users should choose these.~~ ✅ |
 | ~~6~~ | ~~No Stop Word Configuration~~ | ~~Stop word is hardcoded as "stop session"; PRD requires user-configurable stop word in onboarding.~~ ✅ |
-| 7 | Settings Not Persisted | Settings stored in memory only; lost on server restart. PRD requires settings to persist across sessions. |
+| ~~7~~ | ~~Settings Not Persisted~~ | ~~Settings stored in memory only; lost on server restart. PRD requires settings to persist across sessions.~~ ✅ |
 
 ---
 
@@ -25,7 +25,7 @@
 
 | # | Issue | Description |
 |---|-------|-------------|
-| 8 | Missing Settings Tab | PRD specifies a Settings Tab for LLM config, languages, and proficiency. No such UI exists. |
+| ~~8~~ | ~~Missing Settings Tab~~ | ~~PRD specifies a Settings Tab for LLM config, languages, and proficiency. No such UI exists.~~ ✅ |
 | 9 | Missing History Tab | PRD specifies a History Tab to list past conversations. No such UI or backend API exists. |
 | 10 | Post-Session Review Missing | Backend returns `SessionAnalysis` (summary + feedback), but frontend has no UI to display it after session ends. |
 

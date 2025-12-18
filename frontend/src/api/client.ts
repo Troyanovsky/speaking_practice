@@ -29,3 +29,14 @@ export const sessionApi = {
         return response.data;
     }
 };
+
+export const settingsApi = {
+    getSettings: async () => {
+        const response = await api.get('/settings/');
+        return response.data;
+    },
+    updateSettings: async (settings: any) => {
+        const response = await api.post('/settings/', settings);
+        return response.data;
+    }
+};

@@ -17,3 +17,7 @@ torch
 
 # Utils
 scipy
+
+# Dev
+pytest
+httpx
