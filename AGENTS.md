@@ -30,7 +30,7 @@ npm test         # Run frontend tests
 Run pytest from the backend directory:
 ```bash
 cd backend
-pytest
+uv run pytest -v
 ```
 
 ### Frontend
