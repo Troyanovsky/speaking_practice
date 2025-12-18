@@ -10,6 +10,7 @@ class SessionCreate(BaseModel):
     primary_language: str
     target_language: str
     proficiency_level: str
+    stop_word: Optional[str] = "stop session"
 
 class SessionResponse(BaseModel):
     session_id: str

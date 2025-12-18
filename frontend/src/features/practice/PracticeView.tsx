@@ -17,7 +17,9 @@ const PracticeView: React.FC = () => {
     // User-configurable language settings
     const [primaryLanguage, setPrimaryLanguage] = useState('English');
     const [targetLanguage, setTargetLanguage] = useState('Spanish');
+
     const [proficiencyLevel, setProficiencyLevel] = useState('A1');
+    const [stopWord, setStopWord] = useState('stop session');
 
     const startSession = async () => {
         setIsLoading(true);
@@ -25,12 +27,22 @@ const PracticeView: React.FC = () => {
             const settings: SessionCreate = {
                 primary_language: primaryLanguage,
                 target_language: targetLanguage,
-                proficiency_level: proficiencyLevel
+                proficiency_level: proficiencyLevel,
+                stop_word: stopWord
             };
             const data = await sessionApi.startSession(settings);
             setSessionId(data.session_id);
             setTurns(data.turns);
             setIsActive(data.is_active);
+
+            // Play greeting audio if available
+            if (data.turns.length > 0) {
+                const lastTurn = data.turns[data.turns.length - 1];
+                if (lastTurn.audio_url) {
+                    const audio = new Audio(lastTurn.audio_url.startsWith('http') ? lastTurn.audio_url : `http://localhost:8000${lastTurn.audio_url}`);
+                    audio.play();
+                }
+            }
         } catch (error) {
             console.error("Failed to start session:", error);
         } finally {
@@ -135,6 +147,22 @@ const PracticeView: React.FC = () => {
                                         <option key={level} value={level}>{level}</option>
                                     ))}
                                 </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Stop Word
+                                </label>
+                                <input
+                                    type="text"
+                                    value={stopWord}
+                                    onChange={(e) => setStopWord(e.target.value)}
+                                    placeholder="e.g. stop session"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                />
+                                <p className="mt-1 text-xs text-gray-500">
+                                    Say this phrase during practice to end the session.
+                                </p>
                             </div>
                         </div>
 

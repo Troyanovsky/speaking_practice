@@ -8,6 +8,7 @@ export interface SessionCreate {
     primary_language: string;
     target_language: string;
     proficiency_level: string;
+    stop_word?: string;
 }
 
 export interface SessionResponse {
