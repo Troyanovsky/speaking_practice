@@ -11,10 +11,7 @@ This is an AI-powered speaking practice application that helps users improve the
 ### Backend
 ```bash
 cd backend
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+uv run uvicorn app.main:app --reload
 ```
 
 ### Frontend
@@ -36,6 +33,8 @@ npm run lint     # ESLint checking
   - `llm_service.py` - OpenAI API integration
   - `asr_service.py` - Parakeet speech recognition
   - `tts_service.py` - Kokoro text-to-speech
+  - `history_service.py` - Session history persistence (JSON)
+  - `settings_service.py` - User settings persistence (JSON)
 - **Core**: `backend/app/core/` - Configuration and utilities
 - **Schemas**: `backend/app/schemas/` - Pydantic models for data validation
 
@@ -93,7 +92,8 @@ VITE_API_URL=http://localhost:8000/api/v1
 
 ## Development Notes
 
-- Session state is maintained in-memory (`session_manager.py`) - not persistent across restarts
+- Active session state is maintained in-memory (`session_manager.py`) - not persistent across restarts
+- Completed session history is persisted to JSON (`history_service.py`) - survives server restarts
 - Static file serving is handled by FastAPI's `StaticFiles` middleware
 - CORS is configured to allow all origins in development
 - The architecture follows a clean separation between API layer and business logic

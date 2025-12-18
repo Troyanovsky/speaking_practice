@@ -5,6 +5,9 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Speaking Practice App"
     API_V1_STR: str = "/api/v1"
     
+    # Data Settings
+    DATA_DIR: str = os.path.join(os.getcwd(), "backend/app/data")
+    
     # Audio Settings
     AUDIO_UPLOAD_DIR: str = os.path.join(os.getcwd(), "backend/app/data/uploads")
     AUDIO_OUTPUT_DIR: str = os.path.join(os.getcwd(), "backend/app/data/outputs")

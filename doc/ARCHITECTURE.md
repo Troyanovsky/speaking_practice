@@ -24,9 +24,12 @@ speaking_practice/
 │   │   │   ├── llm_service.py     # OpenAI API wrapper (Conversation, Summary, Analysis)
 │   │   │   ├── asr_service.py     # Parakeet ASR wrapper
 │   │   │   ├── tts_service.py     # Kokoro TTS wrapper
-│   │   │   └── session_manager.py # Manages session state & turn counting
+│   │   │   ├── session_manager.py # Manages session state & turn counting
+│   │   │   ├── history_service.py # Persists completed sessions to JSON
+│   │   │   └── settings_service.py # User settings persistence
 │   │   └── schemas/          # Pydantic Models (Data validation)
 │   │       ├── session.py
+│   │       ├── history.py
 │   │       ├── chat.py
 │   │       └── settings.py
 │   ├── data/                 # Local persistence (JSON/SQLite)

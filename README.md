@@ -7,6 +7,7 @@ An AI-powered application to help users improve speaking and listening skills th
 - **Interactive Conversation**: Real-time voice interaction with an AI tutor.
 - **Multi-language Support**: Designed to support English, Spanish, French, Italian, and Portuguese.
 - **Feedback & Analysis**: Provides grammar and vocabulary feedback after each session.
+- **Conversation History**: Access past sessions to review progress and previous feedback.
 - **Local AI Inference**: Optimized for local execution using Parakeet (ASR) and Kokoro (TTS).
 
 ## Tech Stack
@@ -32,45 +33,35 @@ An AI-powered application to help users improve speaking and listening skills th
    cd backend
    ```
 
-2. Create a virtual environment:
+2. Configure Environment:
+   Create a `.env` file in `backend/` and add your LLM configuration (see [below](#configure-environment) for options).
+
+3. Run the server:
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   uv run uvicorn app.main:app --reload
    ```
+   > **Note**: `uv` will automatically create a virtual environment and install dependencies from `requirements.txt` on the first run. This includes platform-specific ASR libraries (`parakeet-mlx` for Mac, `nemo_toolkit` for Windows). Ensure you have `ffmpeg` installed on your system.
 
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-   > **Note**: This will install platform-specific ASR libraries (`parakeet-mlx` for Mac, `nemo_toolkit` for Windows). Ensure you have the necessary system dependencies (e.g., ffmpeg).
+#### Configure Environment
+Create a `.env` file in `backend/` with your settings:
+```env
+# Option 1: OpenAI (default)
+LLM_BASE_URL=https://api.openai.com/v1
+LLM_API_KEY=sk-your-openai-api-key-here
+LLM_MODEL=gpt-4o
 
-4. Configure Environment:
-   Create a `.env` file in `backend/` and add your LLM configuration:
-   ```env
-   # Option 1: OpenAI (default)
-   LLM_BASE_URL=https://api.openai.com/v1
-   LLM_API_KEY=sk-your-openai-api-key-here
-   LLM_MODEL=gpt-4o
+# Option 2: Local LLM via Ollama
+# LLM_BASE_URL=http://localhost:11434/v1
+# LLM_API_KEY=ollama
+# LLM_MODEL=llama3
 
-   # Option 2: Local LLM via Ollama
-   # LLM_BASE_URL=http://localhost:11434/v1
-   # LLM_API_KEY=ollama
-   # LLM_MODEL=llama3
+# Option 3: Azure OpenAI
+# LLM_BASE_URL=https://your-resource.openai.azure.com/openai/deployments/your-deployment
+# LLM_API_KEY=your-azure-api-key
+# LLM_MODEL=gpt-4
+```
 
-   # Option 3: Azure OpenAI
-   # LLM_BASE_URL=https://your-resource.openai.azure.com/openai/deployments/your-deployment
-   # LLM_API_KEY=your-azure-api-key
-   # LLM_MODEL=gpt-4
-
-   # Backward compatibility: OPENAI_API_KEY still works
-   # OPENAI_API_KEY=sk-your-openai-api-key-here
-   ```
-
-5. Run the server:
-   ```bash
-   uvicorn app.main:app --reload
-   ```
-   The API will be available at `http://localhost:8000`. API Docs at `http://localhost:8000/docs`.
+The API will be available at `http://localhost:8000`. API Docs at `http://localhost:8000/docs`.
 
 ### Security Note
 

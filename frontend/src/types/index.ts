@@ -44,3 +44,31 @@ export interface UserSettings {
     llm_api_key?: string;
     llm_model?: string;
 }
+
+export interface SessionHistoryItem {
+    session_id: string;
+    timestamp: string;
+    primary_language: string;
+    target_language: string;
+    proficiency_level: string;
+    turn_count: number;
+    summary: string;
+}
+
+export interface SessionHistoryDetail {
+    session_id: string;
+    timestamp: string;
+    primary_language: string;
+    target_language: string;
+    proficiency_level: string;
+    turn_count: number;
+    turns: Turn[];
+    summary: string;
+    feedback: Feedback[];
+}
+
+export interface HistoryListResponse {
+    sessions: SessionHistoryItem[];
+    total: number;
+}
+

@@ -40,3 +40,19 @@ export const settingsApi = {
         return response.data;
     }
 };
+
+export const historyApi = {
+    getHistory: async () => {
+        const response = await api.get('/history/');
+        return response.data;
+    },
+    getSessionDetail: async (sessionId: string) => {
+        const response = await api.get(`/history/${sessionId}`);
+        return response.data;
+    },
+    deleteSession: async (sessionId: string) => {
+        const response = await api.delete(`/history/${sessionId}`);
+        return response.data;
+    }
+};
+

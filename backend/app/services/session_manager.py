@@ -4,6 +4,7 @@ from app.schemas.session import SessionCreate, Turn, SessionResponse, TurnRespon
 from app.services.llm_service import llm_service
 from app.services.asr_service import asr_service
 from app.services.tts_service import tts_service
+from app.services.history_service import history_service
 
 class SessionManager:
     def __init__(self):
@@ -111,6 +112,20 @@ class SessionManager:
         
         session["is_active"] = False
         analysis = await llm_service.analyze_grammar(session["history"])
+        
+        # Save session to history for persistence
+        history_service.save_session(
+            session_id=session_id,
+            settings_data={
+                "primary_language": session["settings"].primary_language,
+                "target_language": session["settings"].target_language,
+                "proficiency_level": session["settings"].proficiency_level,
+            },
+            history=session["history"],
+            summary=analysis.summary,
+            feedback=[f.model_dump() for f in analysis.feedback]
+        )
+        
         return analysis
 
     def get_session_history(self, session_id: str) -> List[Turn]:
