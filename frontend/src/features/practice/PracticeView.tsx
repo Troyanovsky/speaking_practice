@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { sessionApi, settingsApi } from '../../api/client';
-import type { Turn, SessionCreate } from '../../types';
+import type { Turn, SessionCreate, SessionAnalysis } from '../../types';
 import AudioRecorder from '../../components/AudioRecorder';
+import SessionReview from './SessionReview';
 
 // Supported languages from PRD
 const LANGUAGES = ['English', 'Spanish', 'French', 'Italian', 'Portuguese'];
@@ -12,6 +13,7 @@ const PracticeView: React.FC = () => {
     const [turns, setTurns] = useState<Turn[]>([]);
     const [isActive, setIsActive] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [analysis, setAnalysis] = useState<SessionAnalysis | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
 
     // User-configurable language settings
@@ -39,6 +41,7 @@ const PracticeView: React.FC = () => {
 
     const startSession = async () => {
         setIsLoading(true);
+        setAnalysis(null);
         try {
             const settings: SessionCreate = {
                 primary_language: primaryLanguage,
@@ -85,14 +88,21 @@ const PracticeView: React.FC = () => {
                 return newTurns;
             });
 
-            if (response.is_session_ended) {
-                setIsActive(false);
-            }
-
             // Play audio
             if (response.ai_audio_url) {
                 const audio = new Audio(response.ai_audio_url.startsWith('http') ? response.ai_audio_url : `http://localhost:8000${response.ai_audio_url}`);
-                audio.play();
+                await audio.play();
+            }
+
+            if (response.is_session_ended) {
+                setIsActive(false);
+                // Fetch analysis directly
+                try {
+                    const analysisData = await sessionApi.endSession(sessionId);
+                    setAnalysis(analysisData);
+                } catch (err) {
+                    console.error("Failed to fetch session analysis:", err);
+                }
             }
 
         } catch (error) {
@@ -103,11 +113,22 @@ const PracticeView: React.FC = () => {
         }
     };
 
+    const handleCloseReview = () => {
+        setSessionId(null);
+        setTurns([]);
+        setAnalysis(null);
+        setIsActive(false);
+    };
+
     useEffect(() => {
         if (scrollRef.current) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
     }, [turns]);
+
+    if (analysis) {
+        return <SessionReview analysis={analysis} onClose={handleCloseReview} />;
+    }
 
     return (
         <div className="flex flex-col h-screen max-w-2xl mx-auto p-4 bg-gray-50">
@@ -201,7 +222,7 @@ const PracticeView: React.FC = () => {
                 ))}
             </div>
 
-            {sessionId && (
+            {sessionId && !analysis && (
                 <div className="bg-white p-4 rounded-lg shadow-sm">
                     <AudioRecorder onRecordingComplete={handleRecordingComplete} disabled={!isActive || isLoading} />
                 </div>

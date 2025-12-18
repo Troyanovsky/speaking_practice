@@ -27,7 +27,7 @@
 |---|-------|-------------|
 | ~~8~~ | ~~Missing Settings Tab~~ | ~~PRD specifies a Settings Tab for LLM config, languages, and proficiency. No such UI exists.~~ ✅ |
 | ~~9~~ | ~~Missing History Tab~~ | ~~PRD specifies a History Tab to list past conversations. No such UI or backend API exists.~~ ✅ |
-| 10 | Post-Session Review Missing | Backend returns `SessionAnalysis` (summary + feedback), but frontend has no UI to display it after session ends. (The post-session review show present history in the entire session, and displaying suggestions under the user messages. For better visual comparison, color-code the difference between original_sentence and corrected_sentence) |
+| ~~10~~ | ~~Post-Session Review Missing~~ | ~~Backend returns `SessionAnalysis` (summary + feedback), but frontend has no UI to display it after session ends. (The post-session review show present history in the entire session, and displaying suggestions under the user messages. For better visual comparison, color-code the difference between original_sentence and corrected_sentence)~~ ✅ |
 
 ---
 
