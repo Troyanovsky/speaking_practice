@@ -4,7 +4,7 @@ This file provides guidance to coding agents when working with code in this repo
 
 ## Project Overview
 
-This is an AI-powered speaking practice application that helps users improve their language skills through interactive voice conversations. The system uses ASR (Parakeet), TTS (Kokoro), and LLM (OpenAI GPT) services to provide real-time conversation practice.
+This is an AI-powered speaking practice application that helps users improve their language skills through interactive voice conversations. The system uses ASR (Parakeet), TTS (Kokoro), and configurable LLM services (any OpenAI-compatible API) to provide real-time conversation practice. Users can select their primary language, target language, and CEFR proficiency level (A1-C2).
 
 ## Development Commands
 
@@ -70,9 +70,20 @@ Both fall back to mock implementations if installation fails.
 
 ## Environment Configuration
 
-Backend requires `.env` file with:
+Backend requires `.env` file with LLM configuration:
 ```env
-OPENAI_API_KEY=your_key_here
+# OpenAI (default)
+LLM_BASE_URL=https://api.openai.com/v1
+LLM_API_KEY=your_key_here
+LLM_MODEL=gpt-4o
+
+# Or use other OpenAI-compatible APIs (Ollama, Azure OpenAI, LocalAI, etc.)
+# LLM_BASE_URL=http://localhost:11434/v1
+# LLM_API_KEY=ollama
+# LLM_MODEL=llama3
+
+# Backward compatibility: OPENAI_API_KEY still works
+# OPENAI_API_KEY=your_key_here
 ```
 
 Frontend can be configured with:
@@ -87,3 +98,6 @@ VITE_API_URL=http://localhost:8000/api/v1
 - CORS is configured to allow all origins in development
 - The architecture follows a clean separation between API layer and business logic
 - Frontend uses optimistic UI updates for better user experience
+- Language settings (primary/target languages and CEFR level) are selected by users in the UI before starting a session
+- LLM service generates context-aware responses based on user's proficiency level and language settings
+- The system supports any OpenAI-compatible LLM provider through configuration

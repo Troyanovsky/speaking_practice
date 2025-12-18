@@ -16,14 +16,14 @@ An AI-powered application to help users improve speaking and listening skills th
 - **AI Services**:
     - **ASR**: Parakeet (via `parakeet-mlx` on Mac, `nemo_toolkit` on Windows).
     - **TTS**: Kokoro (via `kokoro` library).
-    - **LLM**: OpenAI GPT-4o (or compatible API).
+    - **LLM**: Any OpenAI-compatible API (OpenAI GPT-4o, Azure OpenAI, Ollama, LocalAI, etc.).
 
 ## Setup & Installation
 
 ### Prerequisites
 - Node.js (v18+)
 - Python (v3.10+)
-- An OpenAI API Key
+- An LLM provider API key (OpenAI, Azure OpenAI, or compatible API)
 
 ### 1. Backend Setup
 
@@ -45,9 +45,25 @@ An AI-powered application to help users improve speaking and listening skills th
    > **Note**: This will install platform-specific ASR libraries (`parakeet-mlx` for Mac, `nemo_toolkit` for Windows). Ensure you have the necessary system dependencies (e.g., ffmpeg).
 
 4. Configure Environment:
-   Create a `.env` file in `backend/` and add your OpenAI Key:
+   Create a `.env` file in `backend/` and add your LLM configuration:
    ```env
-   OPENAI_API_KEY=your_api_key_here
+   # Option 1: OpenAI (default)
+   LLM_BASE_URL=https://api.openai.com/v1
+   LLM_API_KEY=sk-your-openai-api-key-here
+   LLM_MODEL=gpt-4o
+
+   # Option 2: Local LLM via Ollama
+   # LLM_BASE_URL=http://localhost:11434/v1
+   # LLM_API_KEY=ollama
+   # LLM_MODEL=llama3
+
+   # Option 3: Azure OpenAI
+   # LLM_BASE_URL=https://your-resource.openai.azure.com/openai/deployments/your-deployment
+   # LLM_API_KEY=your-azure-api-key
+   # LLM_MODEL=gpt-4
+
+   # Backward compatibility: OPENAI_API_KEY still works
+   # OPENAI_API_KEY=sk-your-openai-api-key-here
    ```
 
 5. Run the server:
@@ -77,11 +93,12 @@ An AI-powered application to help users improve speaking and listening skills th
 ## Usage
 
 1. Open the frontend URL in your browser.
-2. Click **Start New Session**.
-3. Allow microphone access when prompted.
-4. **Hold Spacebar** to speak. Release to send your audio.
-5. The AI will reply with audio and text.
-6. The session ends automatically after 15 turns or if you say "Stop".
+2. Select your primary language, target language, and proficiency level (A1-C2).
+3. Click **Start New Session**.
+4. Allow microphone access when prompted.
+5. **Hold Spacebar** to speak. Release to send your audio.
+6. The AI will reply with audio and text, tailored to your proficiency level.
+7. The session ends automatically after 15 turns or if you say "Stop".
 
 ## Troubleshooting
 

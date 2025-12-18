@@ -66,7 +66,7 @@ speaking_practice/
     *   **Connection**: DEPENDS ON `app.schemas`, `app.services`.
 *   **`app.services` (Service Layer)**:
     *   **Responsibility**: proper logic handling.
-        *   `llm_service`: Handles all prompt construction and LLM API calls.
+        *   `llm_service`: Handles all prompt construction and LLM API calls. Supports any OpenAI-compatible API with configurable base URL, API key, and model. Generates context-aware responses based on user's proficiency level and language settings.
         *   `asr_service`: Receives audio bytes, runs Parakeet, returns text.
         *   `tts_service`: Receives text, runs Kokoro, returns audio bytes.
         *   `session_manager`: Orchestrates the flow. When `session.py` router receives an audio input, the manager calls `asr_service` -> adds to history -> calls `llm_service` -> calls `tts_service` -> updates state.
@@ -78,7 +78,7 @@ speaking_practice/
 
 *   **`features/practice`**:
     *   **Responsibility**: Handles the live session.
-    *   **Logic**: Uses `usePracticeSession` hook to manage state (recording, specific turn data).
+    *   **Logic**: Uses `usePracticeSession` hook to manage state (recording, specific turn data). Includes language selection UI allowing users to choose primary language, target language, and CEFR proficiency level before starting a session.
     *   **Connection**: Calls `api/client` to interact with backend endpoints.
 *   **`api`**:
     *   **Responsibility**: Centralized place for all fetch calls. Ensures types match `backend/app/schemas`.
@@ -87,7 +87,7 @@ speaking_practice/
 
 ### Scenario: User Speaks a Sentence
 
-1.  **Frontend (`PracticeView`)**: User records audio. Long-press spacebar to record, release to end recording and send.
+1.  **Frontend (`PracticeView`)**: User selects primary language, target language, and CEFR level, then records audio. Long-press spacebar to record, release to end recording and send.
 2.  **Frontend (`api`)**: `POST /api/v1/session/{id}/turn` with audio file.
 3.  **Backend (`api/endpoints/session.py`)**: Receives file.
 4.  **Backend (`session_manager`)**:
@@ -95,7 +95,8 @@ speaking_practice/
     *   Checks for "Stop Word".
     *   If continue:
         *   Appends user text to conversation history.
-        *   Calls `llm_service.get_response(history)`.
+        *   Calls `llm_service.get_response(history, user_language_settings)`.
+        *   LLM generates context-aware response based on proficiency level and language settings.
         *   Calls `tts_service.synthesize(llm_response_text)`.
         *   Updates session state (turn count + 1).
 5.  **Backend (`api`)**: Returns JSON `{ "user_text": "...", "ai_text": "...", "ai_audio_url": "..." }`.
