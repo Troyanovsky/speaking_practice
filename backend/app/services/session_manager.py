@@ -27,7 +27,10 @@ class SessionManager:
         )
         
         # Synthesize audio for the greeting
-        greeting_audio_url = await tts_service.synthesize(greeting)
+        greeting_audio_url = await tts_service.synthesize(
+            greeting, 
+            target_language=settings.target_language
+        )
         
         self.sessions[session_id]["history"].append({"role": "assistant", "content": greeting})
         
@@ -66,7 +69,10 @@ class SessionManager:
             )
             
             # Synthesize
-            ai_audio_url = await tts_service.synthesize(ai_text)
+            ai_audio_url = await tts_service.synthesize(
+                ai_text,
+                target_language=session["settings"].target_language
+            )
             
             session["is_active"] = False
             return TurnResponse(
@@ -96,7 +102,10 @@ class SessionManager:
         session["history"].append({"role": "assistant", "content": ai_text})
 
         # 3. Synthesize Audio
-        ai_audio_url = await tts_service.synthesize(ai_text)
+        ai_audio_url = await tts_service.synthesize(
+            ai_text,
+            target_language=session["settings"].target_language
+        )
         
         return TurnResponse(
             user_text=user_text,

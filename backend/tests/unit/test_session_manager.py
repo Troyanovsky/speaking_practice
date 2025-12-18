@@ -58,7 +58,10 @@ async def test_create_session(session_manager, mock_llm_service, mock_tts_servic
     
     # Verify service calls
     mock_llm_service.generate_greeting.assert_called_once_with("Spanish", "A1")
-    mock_tts_service.synthesize.assert_called_once_with("Hola, amigo")
+    mock_tts_service.synthesize.assert_called_once_with(
+        "Hola, amigo", 
+        target_language="Spanish"
+    )
 
 @pytest.mark.asyncio
 async def test_process_turn_normal(session_manager, mock_asr_service, mock_llm_service, mock_tts_service):
@@ -82,7 +85,10 @@ async def test_process_turn_normal(session_manager, mock_asr_service, mock_llm_s
     # Verify calls
     mock_asr_service.transcribe.assert_called_once_with(MOCK_AUDIO_PATH)
     mock_llm_service.get_response.assert_called_once()
-    mock_tts_service.synthesize.assert_called()
+    mock_tts_service.synthesize.assert_called_with(
+        MOCK_AI_TEXT, 
+        target_language="Spanish"
+    )
 
 @pytest.mark.asyncio
 async def test_process_turn_stop_word(session_manager, mock_asr_service, mock_llm_service):

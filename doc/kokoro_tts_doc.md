@@ -70,3 +70,10 @@ On Mac M1/M2/M3/M4 devices, you can explicitly specify the environment variable 
 ```bash
 PYTORCH_ENABLE_MPS_FALLBACK=1 python run-your-kokoro-script.py
 ```
+
+### Voices
+en-us: voice af_heart
+fr: ff_siwis
+es: ef_dora
+it: if_sara
+pt-br: pf_dora

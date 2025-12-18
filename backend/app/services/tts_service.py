@@ -1,23 +1,59 @@
 import os
 import uuid
+import gc
 import soundfile as sf
+from typing import Optional
 from app.core.config import settings
+
+# Mapping of frontend languages to Kokoro lang_code and voice
+LANGUAGE_CONFIG = {
+    'English': {'lang_code': 'a', 'voice': 'af_heart'},
+    'Spanish': {'lang_code': 'e', 'voice': 'ef_dora'},
+    'French': {'lang_code': 'f', 'voice': 'ff_siwis'},
+    'Italian': {'lang_code': 'i', 'voice': 'if_sara'},
+    'Portuguese': {'lang_code': 'p', 'voice': 'pf_dora'},
+}
 
 class TTSService:
     def __init__(self):
         self.pipeline_object = None
+        self.current_lang_code = None
 
-    def load_model(self):
+    def load_model(self, lang_code: str = 'a'):
+        """
+        Loads the Kokoro KPipeline for the specified lang_code.
+        If a pipeline is already loaded for a different language, it clears it first.
+        """
+        if self.pipeline_object is not None and self.current_lang_code == lang_code:
+            return
+
         try:
             from kokoro import KPipeline
-            # Initialize pipeline for US English ('a') by default
-            # Ideally, this should be dynamic based on language, but for MVP sticking to 'a'
-            print("Loading Kokoro Pipeline...")
-            self.pipeline_object = KPipeline(lang_code='a') 
+            
+            # Clear existing pipeline to save memory/VRAM
+            if self.pipeline_object is not None:
+                print(f"Clearing old pipeline for {self.current_lang_code}")
+                self.pipeline_object = None
+                gc.collect() # Help clear memory
+            
+            print(f"Loading Kokoro Pipeline for lang_code: {lang_code}")
+            self.pipeline_object = KPipeline(lang_code=lang_code) 
+            self.current_lang_code = lang_code
         except ImportError:
-            print("Kokoro library not installed. Falling back to Mock.")
+            print("Kokoro library not installed. Using Mock logic.")
+            self.pipeline_object = None
+            self.current_lang_code = None
 
-    async def synthesize(self, text: str) -> str:
+    async def synthesize(self, text: str, target_language: str = "English") -> str:
+        # Get config for the target language, fallback to English
+        config = LANGUAGE_CONFIG.get(target_language, LANGUAGE_CONFIG['English'])
+        lang_code = config['lang_code']
+        voice = config['voice']
+
+        # Ensure correct pipeline is loaded
+        if self.pipeline_object is None or self.current_lang_code != lang_code:
+            self.load_model(lang_code)
+
         if self.pipeline_object is None:
             return "/static/mock_audio.wav"
 
@@ -27,15 +63,11 @@ class TTSService:
             output_path = os.path.join(settings.AUDIO_OUTPUT_DIR, filename)
             
             # Generate audio
-            # voice='af_heart' is a good default
-            generator = self.pipeline_object(text, voice='af_heart', speed=1, split_pattern=r'\n+')
+            generator = self.pipeline_object(text, voice=voice, speed=1, split_pattern=r'\n+')
             
-            # Concatenate audio chunks (simplification: assume single chunk or taking first useful)
-            # A real impl might need to stitch if text is long
             has_audio = False
             for i, (gs, ps, audio) in enumerate(generator):
                 # Save just the first chunk for MVP or stitch them
-                # For this demo let's save the first chunk
                 sf.write(output_path, audio, 24000)
                 has_audio = True
                 break 
