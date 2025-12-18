@@ -3,6 +3,10 @@ import { sessionApi } from '../../api/client';
 import type { Turn, SessionCreate } from '../../types';
 import AudioRecorder from '../../components/AudioRecorder';
 
+// Supported languages from PRD
+const LANGUAGES = ['English', 'Spanish', 'French', 'Italian', 'Portuguese'];
+const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+
 const PracticeView: React.FC = () => {
     const [sessionId, setSessionId] = useState<string | null>(null);
     const [turns, setTurns] = useState<Turn[]>([]);
@@ -10,13 +14,18 @@ const PracticeView: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
+    // User-configurable language settings
+    const [primaryLanguage, setPrimaryLanguage] = useState('English');
+    const [targetLanguage, setTargetLanguage] = useState('Spanish');
+    const [proficiencyLevel, setProficiencyLevel] = useState('A1');
+
     const startSession = async () => {
         setIsLoading(true);
         try {
             const settings: SessionCreate = {
-                primary_language: "English",
-                target_language: "Spanish", // Hardcoded for now
-                proficiency_level: "A1"
+                primary_language: primaryLanguage,
+                target_language: targetLanguage,
+                proficiency_level: proficiencyLevel
             };
             const data = await sessionApi.startSession(settings);
             setSessionId(data.session_id);
@@ -80,7 +89,55 @@ const PracticeView: React.FC = () => {
 
             <div className="flex-1 overflow-y-auto mb-6 p-4 bg-white rounded-lg shadow-sm" ref={scrollRef}>
                 {turns.length === 0 && !sessionId && (
-                    <div className="flex justify-center items-center h-full">
+                    <div className="flex flex-col justify-center items-center h-full space-y-6">
+                        {/* Language Settings */}
+                        <div className="w-full max-w-md space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Your Primary Language
+                                </label>
+                                <select
+                                    value={primaryLanguage}
+                                    onChange={(e) => setPrimaryLanguage(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                >
+                                    {LANGUAGES.map(lang => (
+                                        <option key={lang} value={lang}>{lang}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Language to Practice
+                                </label>
+                                <select
+                                    value={targetLanguage}
+                                    onChange={(e) => setTargetLanguage(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                >
+                                    {LANGUAGES.map(lang => (
+                                        <option key={lang} value={lang}>{lang}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Proficiency Level (CEFR)
+                                </label>
+                                <select
+                                    value={proficiencyLevel}
+                                    onChange={(e) => setProficiencyLevel(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                >
+                                    {CEFR_LEVELS.map(level => (
+                                        <option key={level} value={level}>{level}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
                         <button
                             onClick={startSession}
                             disabled={isLoading}

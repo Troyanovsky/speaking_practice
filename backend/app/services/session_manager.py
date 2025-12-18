@@ -19,9 +19,12 @@ class SessionManager:
             "is_active": True
         }
         
-        # Initial greeting
-        greeting = "Hello! I am your speaking practice partner. What would you like to talk about today?"
-        self.sessions[session_id]["history"].append({"role": "system", "content": greeting})
+        # Generate LLM greeting based on user settings
+        greeting = await llm_service.generate_greeting(
+            settings.target_language,
+            settings.proficiency_level
+        )
+        self.sessions[session_id]["history"].append({"role": "assistant", "content": greeting})
         
         return SessionResponse(
             session_id=session_id,
@@ -51,9 +54,13 @@ class SessionManager:
         session["history"].append({"role": "user", "content": user_text})
         session["turn_count"] += 1
 
-        # 2. Get LLM Response
-        ai_text = await llm_service.get_response(session["history"])
-        session["history"].append({"role": "system", "content": ai_text})
+        # 2. Get LLM Response with user settings
+        ai_text = await llm_service.get_response(
+            session["history"],
+            session["settings"].target_language,
+            session["settings"].proficiency_level
+        )
+        session["history"].append({"role": "assistant", "content": ai_text})
 
         # 3. Synthesize Audio
         ai_audio_url = await tts_service.synthesize(ai_text)

@@ -9,8 +9,10 @@ class Settings(BaseSettings):
     AUDIO_UPLOAD_DIR: str = os.path.join(os.getcwd(), "backend/app/data/uploads")
     AUDIO_OUTPUT_DIR: str = os.path.join(os.getcwd(), "backend/app/data/outputs")
     
-    # LLM Settings
-    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
+    # LLM Settings - Supports any OpenAI-compatible API
+    LLM_BASE_URL: str = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
+    LLM_API_KEY: str = os.getenv("LLM_API_KEY", os.getenv("OPENAI_API_KEY", ""))
+    LLM_MODEL: str = os.getenv("LLM_MODEL", "gpt-4o")
     
     # Model Config
     model_config = SettingsConfigDict(env_file=".env")

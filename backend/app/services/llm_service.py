@@ -6,11 +6,51 @@ from app.core.config import settings
 
 class LLMService:
     def __init__(self):
-        self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
-        self.model = "gpt-4o" # Or gpt-3.5-turbo
+        self.client = AsyncOpenAI(
+            api_key=settings.LLM_API_KEY,
+            base_url=settings.LLM_BASE_URL
+        )
+        self.model = settings.LLM_MODEL
 
-    async def get_response(self, history: List[Dict[str, str]]) -> str:
-        messages = [{"role": "system", "content": "You are a helpful language learning assistant. Keep your responses concise and natural. Encourage the user to speak."}]
+    async def generate_greeting(self, target_language: str, proficiency_level: str) -> str:
+        """Generate an LLM-powered greeting that considers language and proficiency."""
+        system_prompt = f"""You are a helpful language learning assistant for {target_language} at {proficiency_level} level.
+
+Generate a friendly greeting that:
+1. Welcomes the user warmly
+2. Suggests a random conversation topic appropriate for their level
+3. Asks an opening question to start the practice
+
+Keep your response appropriate for a {proficiency_level} learner.
+
+Respond in {target_language}. Keep the greeting concise (2-3 sentences)."""
+
+        try:
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": "Generate a greeting to start the practice session."}
+                ]
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"Greeting Generation Error: {e}")
+            # Fallback to a simple greeting
+            return f"Hello! Let's practice {target_language} today. What would you like to talk about?"
+
+    async def get_response(self, history: List[Dict[str, str]], 
+                           target_language: str = "English",
+                           proficiency_level: str = "B1") -> str:
+        """Get LLM response with user context for language and proficiency."""
+        system_prompt = f"""You are a helpful language learning assistant helping a user practice {target_language} at {proficiency_level} level.
+
+Adjust your language complexity to match their proficiency.
+
+Keep your responses concise and natural. Encourage the user to speak more.
+Respond in {target_language}."""
+
+        messages = [{"role": "system", "content": system_prompt}]
         messages.extend(history)
         
         try:
