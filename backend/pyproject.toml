@@ -21,11 +21,12 @@ dependencies = [
     "numpy",
     "torch",
     "scipy",
+    "typer",
+    "parakeet-mlx; sys_platform == 'darwin'",
+    "nemo_toolkit[asr]; sys_platform != 'darwin'",
 ]
 
 [project.optional-dependencies]
-asr-macos = ["parakeet-mlx"]
-asr-linux-windows = ["nemo_toolkit[asr]"]
 dev = [
     "pytest",
     "httpx",
