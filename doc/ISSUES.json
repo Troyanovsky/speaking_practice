@@ -37,12 +37,6 @@
       "passes": false
     },
     {
-      "category": "Backend Bug",
-      "description": "TTS Language Support Gap",
-      "expected_behavior": "Add backend validation to ensure frontend language selections match supported languages in LANGUAGE_CONFIG (English, Spanish, French, Italian, Portuguese) and double-check that frontend only shows supported options",
-      "passes": false
-    },
-    {
       "category": "Frontend Bug",
       "description": "Chat history visible during session",
       "expected_behavior": "Hide chat history during speaking practice and only show it at the end. During session, display waveform with turn count (e.g. x/15)",

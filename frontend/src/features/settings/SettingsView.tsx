@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { settingsApi } from '../../api/client';
 import type { UserSettings } from '../../types';
 
+// Languages must match backend TTS service LANGUAGE_CONFIG
 const LANGUAGES = ['English', 'Spanish', 'French', 'Italian', 'Portuguese'];
 const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
