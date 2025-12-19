@@ -1,5 +1,6 @@
 from typing import List, Dict
 import json
+import re
 from openai import AsyncOpenAI
 from app.schemas.session import SessionAnalysis
 from app.core.config import settings
@@ -21,12 +22,27 @@ class LLMService:
         )
         return client, user_settings.llm_model
 
+    def _clean_text(self, text: str) -> str:
+        """Remove markdown formatting characters and normalize whitespace."""
+        # Remove code blocks and inline code (do this first)
+        text = re.sub(r'`{1,3}.*?`{1,3}', '', text, flags=re.DOTALL)
+        # Remove bold/italic markers
+        text = re.sub(r'[*_]{1,3}', '', text)
+        # Remove markdown links [text](url) -> text
+        text = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', text)
+        # Remove list markers at start of lines or after whitespace
+        text = re.sub(r'(?m)^\s*[-+*]\s+', '', text)
+        text = re.sub(r'(?m)^\s*\d+\.\s+', '', text)
+        # Normalize whitespace
+        text = re.sub(r'\s+', ' ', text).strip()
+        return text
+
     async def generate_greeting(self, target_language: str, proficiency_level: str) -> str:
         """Generate an LLM-powered greeting that considers language and proficiency."""
         client, model = self._get_client()
         
         system_prompt = f"""You are a helpful language learning assistant for {target_language} at {proficiency_level} level.
-
+        
 Generate a friendly greeting that:
 1. Welcomes the user warmly
 2. Suggests a random conversation topic appropriate for their level
@@ -34,17 +50,20 @@ Generate a friendly greeting that:
 
 Keep your response appropriate for a {proficiency_level} learner.
 
-Respond in {target_language}. Keep the greeting concise (2-3 sentences)."""
+CRITICAL: You MUST respond EXCLUSIVELY in {target_language}. All parts of your response (greeting, topic suggestion, and question) must be in {target_language}. Keep the greeting concise (2-3 sentences).
+
+DO NOT use any markdown formatting such as bold (**text**), italics (*text*), or lists. Return only pure text sentences."""
 
         try:
             response = await client.chat.completions.create(
                 model=model,
                 messages=[
                     {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": "Generate a greeting to start the practice session."}
+                    {"role": "user", "content": f"Generate a greeting to start the practice session in {target_language}."}
                 ]
             )
-            return response.choices[0].message.content
+            content = response.choices[0].message.content
+            return self._clean_text(content)
         except Exception as e:
             raise LLMError(message=f"Greeting generation failed: {str(e)}")
 
@@ -54,12 +73,14 @@ Respond in {target_language}. Keep the greeting concise (2-3 sentences)."""
         """Get LLM response with user context for language and proficiency."""
         client, model = self._get_client()
         
-        system_prompt = f"""You are a helpful language learning assistant helping a user practice {target_language} at {proficiency_level} level.
+        system_prompt = f"""You are a helpful language learning assistant named Luna, helping a user practice {target_language} at {proficiency_level} level.
 
 Adjust your language complexity to match their proficiency.
 
 Keep your responses concise and natural. Encourage the user to speak more.
-Respond in {target_language}."""
+CRITICAL: You MUST respond EXCLUSIVELY in {target_language}. Do not use any other language.
+
+DO NOT use any markdown formatting such as bold (**text**), italics (*text*), or lists. Return only pure text sentences."""
 
         messages = [{"role": "system", "content": system_prompt}]
         messages.extend(history)
@@ -69,7 +90,8 @@ Respond in {target_language}."""
                 model=model,
                 messages=messages
             )
-            return response.choices[0].message.content
+            content = response.choices[0].message.content
+            return self._clean_text(content)
         except Exception as e:
             raise LLMError(message=f"Failed to get LLM response: {str(e)}")
 
@@ -98,7 +120,7 @@ Respond in {target_language}."""
             "summary": "Overall summary of performance",
             "feedback": [
                 {
-                    "original_sentence": "User's sentence with error",
+                    "original_sentence": "User's exact original sentence with error",
                     "corrected_sentence": "Corrected user sentence",
                     "explanation": "Brief explanation of the error"
                 }

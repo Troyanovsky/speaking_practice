@@ -78,3 +78,8 @@ async def test_generate_greeting_error(llm_service, mock_openai, mock_settings):
     with pytest.raises(LLMError) as excinfo:
         await llm_service.generate_greeting("Spanish", "A1")
     assert "Greeting generation failed" in str(excinfo.value)
+
+def test_clean_text(llm_service):
+    dirty_text = "**Hello** *world* [link](url) `code` \n- list item\n1. First"
+    expected = "Hello world link list item First"
+    assert llm_service._clean_text(dirty_text) == expected

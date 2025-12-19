@@ -43,12 +43,6 @@
       "passes": false
     },
     {
-      "category": "Backend Bug",
-      "description": "First greeting in wrong language",
-      "expected_behavior": "Ensure the first greeting and topic asking sentence is in the user's target language instead of English",
-      "passes": false
-    },
-    {
       "category": "Frontend Bug",
       "description": "Chat history visible during session",
       "expected_behavior": "Hide chat history during speaking practice and only show it at the end. During session, display waveform with turn count (e.g. 2/15)",
