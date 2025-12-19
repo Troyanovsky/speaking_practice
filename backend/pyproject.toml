@@ -24,6 +24,7 @@ dependencies = [
     "typer",
     "parakeet-mlx; sys_platform == 'darwin'",
     "nemo_toolkit[asr]; sys_platform != 'darwin'",
+    "cuda-python>=12.3; sys_platform != 'darwin'",
     "hf-transfer>=0.1.9",
 ]
 
