@@ -14,6 +14,7 @@ const PracticeView: React.FC = () => {
     const [isActive, setIsActive] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [analysis, setAnalysis] = useState<SessionAnalysis | null>(null);
+    const [isSessionEnding, setIsSessionEnding] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
     // User-configurable language settings
@@ -42,6 +43,7 @@ const PracticeView: React.FC = () => {
     const startSession = async () => {
         setIsLoading(true);
         setAnalysis(null);
+        setIsSessionEnding(false);
         try {
             const settings: SessionCreate = {
                 primary_language: primaryLanguage,
@@ -88,20 +90,37 @@ const PracticeView: React.FC = () => {
                 return newTurns;
             });
 
+            // Handle session ending state
+            if (response.is_session_ending) {
+                setIsSessionEnding(true);
+                setIsActive(false);
+            }
+
             // Play audio
             if (response.ai_audio_url) {
                 const audio = new Audio(response.ai_audio_url.startsWith('http') ? response.ai_audio_url : `http://localhost:8000${response.ai_audio_url}`);
                 await audio.play();
-            }
-
-            if (response.is_session_ended) {
-                setIsActive(false);
-                // Fetch analysis directly
+                
+                // Only fetch analysis after audio finishes if session ended
+                if (response.is_session_ended) {
+                    try {
+                        const analysisData = await sessionApi.endSession(sessionId);
+                        setAnalysis(analysisData);
+                        setIsSessionEnding(false);
+                    } catch (err) {
+                        console.error("Failed to fetch session analysis:", err);
+                        setIsSessionEnding(false);
+                    }
+                }
+            } else if (response.is_session_ended) {
+                // If no audio, fetch analysis immediately
                 try {
                     const analysisData = await sessionApi.endSession(sessionId);
                     setAnalysis(analysisData);
+                    setIsSessionEnding(false);
                 } catch (err) {
                     console.error("Failed to fetch session analysis:", err);
+                    setIsSessionEnding(false);
                 }
             }
 
@@ -118,6 +137,7 @@ const PracticeView: React.FC = () => {
         setTurns([]);
         setAnalysis(null);
         setIsActive(false);
+        setIsSessionEnding(false);
     };
 
     const stopSession = async () => {
@@ -125,9 +145,38 @@ const PracticeView: React.FC = () => {
         
         setIsLoading(true);
         try {
-            const analysisData = await sessionApi.endSession(sessionId);
+            const response = await sessionApi.stopSession(sessionId);
+            setIsSessionEnding(true);
             setIsActive(false);
-            setAnalysis(analysisData);
+            
+            // Add AI response to turns
+            setTurns(prev => [...prev, { role: 'system', text: response.ai_text, audio_url: response.ai_audio_url }]);
+            
+            // Play audio
+            if (response.ai_audio_url) {
+                const audio = new Audio(response.ai_audio_url.startsWith('http') ? response.ai_audio_url : `http://localhost:8000${response.ai_audio_url}`);
+                await audio.play();
+                
+                // Only fetch analysis after audio finishes
+                try {
+                    const analysisData = await sessionApi.endSession(sessionId);
+                    setAnalysis(analysisData);
+                    setIsSessionEnding(false);
+                } catch (err) {
+                    console.error("Failed to fetch session analysis:", err);
+                    setIsSessionEnding(false);
+                }
+            } else {
+                // If no audio, fetch analysis immediately
+                try {
+                    const analysisData = await sessionApi.endSession(sessionId);
+                    setAnalysis(analysisData);
+                    setIsSessionEnding(false);
+                } catch (err) {
+                    console.error("Failed to fetch session analysis:", err);
+                    setIsSessionEnding(false);
+                }
+            }
         } catch (error) {
             console.error("Failed to stop session:", error);
         } finally {
@@ -281,8 +330,30 @@ const PracticeView: React.FC = () => {
                     </div>
                 )}
 
+                {/* Session ending - waiting for final audio to play */}
+                {isSessionEnding && (
+                    <div className="flex flex-col justify-center items-center h-full space-y-6">
+                        <div className="text-center">
+                            <h2 className="text-2xl font-semibold text-gray-800 mb-2">Session Ending</h2>
+                            <p className="text-gray-600">Please wait for the final response...</p>
+                        </div>
+                        
+                        <div className="animate-pulse flex space-x-2">
+                            <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                            <div className="w-3 h-3 bg-blue-600 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                            <div className="w-3 h-3 bg-blue-600 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                        </div>
+                        
+                        <div className="text-center max-w-sm">
+                            <p className="text-xs text-gray-400">
+                                Your session summary will appear after the response finishes
+                            </p>
+                        </div>
+                    </div>
+                )}
+
                 {/* Session ended but not showing analysis yet */}
-                {sessionId && !isActive && !analysis && (
+                {sessionId && !isActive && !analysis && !isSessionEnding && (
                     <div className="flex flex-col justify-center items-center h-full space-y-6">
                         <div className="text-center">
                             <h2 className="text-2xl font-semibold text-gray-800 mb-2">Session Ended</h2>
@@ -296,7 +367,7 @@ const PracticeView: React.FC = () => {
 
             {sessionId && !analysis && (
                 <div className="bg-white p-4 rounded-lg shadow-sm">
-                    <AudioRecorder onRecordingComplete={handleRecordingComplete} disabled={!isActive || isLoading} />
+                    <AudioRecorder onRecordingComplete={handleRecordingComplete} disabled={!isActive || isLoading || isSessionEnding} />
                 </div>
             )}
         </div>

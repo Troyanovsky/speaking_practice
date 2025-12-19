@@ -22,6 +22,7 @@ class TurnResponse(BaseModel):
     ai_text: str
     ai_audio_url: str
     is_session_ended: bool = False
+    is_session_ending: bool = False
 
 class Feedback(BaseModel):
     original_sentence: str

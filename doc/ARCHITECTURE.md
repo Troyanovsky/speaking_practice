@@ -13,7 +13,7 @@ speaking_practice/
 │   │   ├── api/              # API Route Handlers
 │   │   │   ├── v1/
 │   │   │   │   ├── endpoints/
-│   │   │   │   │   ├── session.py   # Practice session endpoints (start, turn, end)
+│   │   │   │   │   ├── session.py   # Practice session endpoints (start, turn, stop, end)
 │   │   │   │   │   ├── history.py   # Past conversation history
 │   │   │   │   │   └── settings.py  # User settings management
 │   │   │   │   └── api.py       # Route aggregation
@@ -25,7 +25,7 @@ speaking_practice/
 │   │   │   ├── llm_service.py     # OpenAI-compatible API wrapper with dynamic client creation
 │   │   │   ├── asr_service.py     # Parakeet ASR wrapper with platform-specific implementations
 │   │   │   ├── tts_service.py     # Kokoro TTS wrapper with dynamic language support
-│   │   │   ├── session_manager.py # Manages session state, turn counting & cleanup
+│   │   │   ├── session_manager.py # Manages session state, turn counting, cleanup & wrap-up generation
 │   │   │   ├── history_service.py # Persists completed sessions to JSON
 │   │   │   └── settings_service.py # User settings persistence
 │   │   └── schemas/          # Pydantic Models (Data validation)
@@ -114,25 +114,49 @@ speaking_practice/
 4.  **Backend (`session_manager`)**:
     *   Validates audio file (filename sanitization, extension check).
     *   Calls `asr_service.transcribe(audio_file)` with platform-specific implementation.
-    *   Checks for "Stop Word".
+    *   Checks for "Stop Word" or max turns reached.
     *   If continue:
         *   Appends user text to conversation history.
         *   Calls `llm_service.get_response(history, user_language_settings)` with dynamic client creation.
         *   LLM generates context-aware response based on proficiency level and language settings.
         *   Calls `tts_service.synthesize(llm_response_text)` with session-based naming and language support.
         *   Updates session state (turn count + 1).
-5.  **Backend (`api`)**: Returns structured JSON `{ "user_text": "...", "ai_text": "...", "ai_audio_url": "..." }` with error handling.
-6.  **Frontend**: Plays audio, displays text updates, handles any notifications.
+    *   If stop word or max turns:
+        *   Adds appropriate wrap-up prompt to conversation history
+        *   Generates wrap-up response and synthesizes audio
+        *   Sets `is_session_ended=True` and `is_session_ending=True`
+5.  **Backend (`api`)**: Returns structured JSON `{ "user_text": "...", "ai_text": "...", "ai_audio_url": "...", "is_session_ended": boolean, "is_session_ending": boolean }` with error handling.
+6.  **Frontend**: Plays audio, displays text updates, handles session ending state properly.
+
+### Scenario: Manual Session Stop (Stop Button)
+
+1.  **Frontend (`PracticeView`)**: User clicks "Stop Session" button.
+2.  **Frontend (`api`)**: `POST /api/v1/session/{id}/stop`.
+3.  **Backend (`session_manager`)**:
+    *   Calls `stop_session()` method.
+    *   Adds wrap-up prompt: "The user has decided to stop the session. Please provide a brief, polite wrap-up message in the target language."
+    *   Generates wrap-up response and synthesizes audio.
+    *   Returns `TurnResponse` with `is_session_ended=True` and `is_session_ending=True`.
+4.  **Frontend**: 
+    *   Sets `isSessionEnding=true`, disables voice input.
+    *   Shows "Session Ending" UI with loading animation.
+    *   Plays wrap-up audio completely.
+    *   After audio finishes, calls `POST /api/v1/session/{id}/end` to get analysis.
+    *   Displays session summary.
 
 ### Scenario: End of Session Analysis
 
-1.  **Backend**: When turn count == 15 or stop word detected.
+1.  **Backend**: Session ending triggered via stop word, max turns, or manual stop button.
 2.  **Backend (`session_manager`)**:
-    *   Calls `llm_service.generate_summary(history)` with dynamic client.
-    *   Calls `llm_service.analyze_grammar(history)` (Returns JSON).
+    *   Generates appropriate wrap-up response based on trigger type.
+    *   Frontend waits for wrap-up audio to complete playing.
+3.  **Frontend**: After wrap-up audio completes, calls `POST /api/v1/session/{id}/end`.
+4.  **Backend (`session_manager`)**:
+    *   Calls `llm_service.analyze_grammar(history)` with dynamic client.
     *   Saves full record to `data/history.json` with absolute path resolution.
+    *   Returns `SessionAnalysis` with summary and feedback.
     *   Marks session for cleanup after 1 hour.
-3.  **Frontend**: Redirects to History Detail view to show the report with session review.
+5.  **Frontend**: Displays session analysis and summary review.
 
 ### Scenario: Session Cleanup
 
@@ -142,6 +166,19 @@ speaking_practice/
     *   Removes session state from memory.
     *   Deletes associated audio files from `data/outputs/` using session-based naming.
     *   Logs cleanup activity.
+
+### Scenario: Session Ending UX Flow
+
+1.  **Session Ending Trigger**: Stop word, max turns, or manual stop button.
+2.  **Backend Response**: Returns `TurnResponse` with `is_session_ending=True`.
+3.  **Frontend State Management**:
+    *   Sets `isSessionEnding=true`, `isActive=false`.
+    *   Disables voice input recording.
+    *   Shows "Session Ending" UI with animated loading indicator.
+    *   Displays message: "Please wait for the final response..."
+4.  **Audio Playback**: Wrap-up audio plays completely.
+5.  **Analysis Generation**: After audio completes, frontend calls `/end` endpoint.
+6.  **Summary Display**: Session analysis and summary screen appears.
 
 ### Scenario: Error Handling
 

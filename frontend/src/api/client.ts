@@ -44,6 +44,10 @@ export const sessionApi = {
         });
         return response.data;
     },
+    stopSession: async (sessionId: string) => {
+        const response = await api.post(`/session/${sessionId}/stop`);
+        return response.data;
+    },
     endSession: async (sessionId: string) => {
         const response = await api.post(`/session/${sessionId}/end`);
         return response.data;

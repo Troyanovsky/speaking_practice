@@ -33,6 +33,10 @@ async def process_turn(session_id: str, audio: UploadFile = File(...)):
     # Process
     return await session_manager.process_turn(session_id, saved_path)
 
+@router.post("/{session_id}/stop", response_model=TurnResponse)
+async def stop_session(session_id: str):
+    return await session_manager.stop_session(session_id)
+
 @router.post("/{session_id}/end", response_model=SessionAnalysis)
 async def end_session(session_id: str):
     return await session_manager.end_session(session_id)

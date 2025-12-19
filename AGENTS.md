@@ -95,14 +95,31 @@ npm test -- --coverage                 # Run tests with coverage report
 1. Frontend calls `POST /api/v1/session/start` to create session with session ID
 2. User records audio and sends via `POST /api/v1/session/{id}/turn`
 3. Backend orchestrates: ASR → LLM → TTS → returns response with session-based audio filenames
-4. Session ends after 15 turns or stop word, analysis generated
-5. Background cleanup task removes expired sessions and associated audio files every 10 minutes
+4. Session can end via multiple mechanisms:
+   - **Stop Word**: User says stop word during normal turn → generates wrap-up response with `is_session_ending=True`
+   - **Max Turns**: Reaches 15 turns → generates natural closing message with `is_session_ending=True`
+   - **Stop Button**: User clicks stop button → calls `POST /api/v1/session/{id}/stop` → generates wrap-up response with `is_session_ending=True`
+5. Frontend waits for wrap-up audio to complete playing, then calls `POST /api/v1/session/{id}/end` to generate analysis
+6. Background cleanup task removes expired sessions and associated audio files every 10 minutes
 
 ### Audio Handling
 - Backend mounts `/static` for serving generated audio files from `data/outputs/`
 - Audio files use session-based naming: `{session_id}_{turn_number}.wav`
 - Frontend constructs audio URLs: `http://localhost:8000/static/filename`
 - Uploaded audio files are temporarily stored in `data/uploads/` with validation
+
+### API Endpoints
+
+#### Session Management
+- `POST /api/v1/session/start` - Create new session with language settings
+- `POST /api/v1/session/{id}/turn` - Process audio turn with ASR → LLM → TTS pipeline
+- `POST /api/v1/session/{id}/stop` - Manually stop session with wrap-up response
+- `POST /api/v1/session/{id}/end` - Generate final analysis (called after wrap-up completes)
+
+#### Session Ending Behavior
+- **Stop Word**: `"The user has decided to stop the session. Please provide a brief, polite wrap-up message in the target language."`
+- **Max Turns**: `"This is the final turn of the conversation. Please provide a natural closing message to wrap up the session in the target language."`
+- **Stop Button**: Same as stop word prompt
 
 ### Error Handling
 - Custom exception hierarchy with `AppException` base class
@@ -162,5 +179,6 @@ VITE_API_URL=http://localhost:8000/api/v1
   - Structured error handling prevents information leakage
 - **Architecture**: Clean separation between API layer and business logic with dependency injection
 - **Frontend**: React 19 with TypeScript, Tailwind CSS, and optimistic UI updates for better user experience
+- **Session Ending UX**: Improved flow with `is_session_ending` state to prevent abrupt summary display. Voice input disabled during session ending, user sees "Session Ending" message while waiting for final audio to play
 - **TTS Language Support**: Dynamic language configuration supporting English, Spanish, French, Italian, and Portuguese
 - **LLM Integration**: Dynamic client creation allows runtime configuration changes for different LLM providers

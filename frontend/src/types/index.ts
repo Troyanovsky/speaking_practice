@@ -22,6 +22,7 @@ export interface TurnResponse {
     ai_text: string;
     ai_audio_url: string;
     is_session_ended: boolean;
+    is_session_ending?: boolean;
 }
 
 export interface Feedback {

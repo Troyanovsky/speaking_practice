@@ -100,7 +100,8 @@ class SessionManager:
                 user_text=user_text,
                 ai_text=ai_text,
                 ai_audio_url=ai_audio_url,
-                is_session_ended=True
+                is_session_ended=True,
+                is_session_ending=True
             )
 
         # Update history
@@ -133,7 +134,8 @@ class SessionManager:
             user_text=user_text,
             ai_text=ai_text,
             ai_audio_url=ai_audio_url,
-            is_session_ended=not session["is_active"]
+            is_session_ended=not session["is_active"],
+            is_session_ending=is_last_turn
         )
 
     async def end_session(self, session_id: str) -> SessionAnalysis:
@@ -161,6 +163,42 @@ class SessionManager:
         cleanup_session_files(session_id)
         
         return analysis
+
+    async def stop_session(self, session_id: str) -> TurnResponse:
+        session = self.sessions.get(session_id)
+        if not session:
+            raise SessionNotFoundError(session_id)
+        
+        if not session["is_active"]:
+            raise SessionError(message="Cannot stop an inactive session")
+
+        # Generate wrap-up message
+        wrap_up_prompt = "The user has decided to stop the session. Please provide a brief, polite wrap-up message in the target language."
+        session["history"].append({"role": "system", "content": wrap_up_prompt})
+        
+        ai_text = await llm_service.get_response(
+            session["history"],
+            session["settings"].target_language,
+            session["settings"].proficiency_level
+        )
+        
+        # Synthesize
+        ai_audio_url = await tts_service.synthesize(
+            ai_text,
+            target_language=session["settings"].target_language,
+            session_id=session_id
+        )
+        
+        session["history"].append({"role": "assistant", "content": ai_text})
+        session["is_active"] = False
+        
+        return TurnResponse(
+            user_text="",
+            ai_text=ai_text,
+            ai_audio_url=ai_audio_url,
+            is_session_ended=True,
+            is_session_ending=True
+        )
 
     def get_session_history(self, session_id: str) -> List[Turn]:
         session = self.sessions.get(session_id)
