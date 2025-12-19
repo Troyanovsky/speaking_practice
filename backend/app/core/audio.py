@@ -1,7 +1,47 @@
 import os
 import io
+import re
 from typing import BinaryIO
 from pydub import AudioSegment
+from fastapi import HTTPException
+
+ALLOWED_AUDIO_EXTENSIONS = {".wav", ".mp3", ".m4a", ".ogg", ".webm", ".aac", ".flac"}
+
+def sanitize_filename(filename: str | None) -> str:
+    """
+    Sanitizes a filename to prevent path traversal and other attacks.
+    Preserves the extension when truncating to length limit.
+    """
+    if not filename:
+        return "unnamed_audio"
+    
+    # Remove directory components (handle both types of separators)
+    filename = filename.replace("\\", "/")
+    filename = os.path.basename(filename)
+    
+    # Remove characters that aren't alphanumeric, dots, underscores, or dashes
+    filename = re.sub(r"[^a-zA-Z0-9._-]", "_", filename)
+    
+    # Limit length while preserving extension
+    if len(filename) > 255:
+        name, ext = os.path.splitext(filename)
+        filename = name[:255 - len(ext)] + ext
+        
+    return filename
+
+def validate_audio_extension(filename: str | None):
+    """
+    Validates that the filename has an allowed audio extension.
+    """
+    if not filename:
+        raise HTTPException(status_code=400, detail="Missing filename")
+        
+    _, ext = os.path.splitext(filename.lower())
+    if ext not in ALLOWED_AUDIO_EXTENSIONS:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Invalid file extension. Allowed: {', '.join(ALLOWED_AUDIO_EXTENSIONS)}"
+        )
 
 def save_upload_file(upload_file: BinaryIO, destination: str) -> str:
     """

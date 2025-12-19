@@ -2,18 +2,6 @@
   "issues": [
     {
       "category": "Security",
-      "description": "Audio File Upload Path Issue",
-      "expected_behavior": "Fix audio.filename handling which may be None, and add filename sanitization to prevent path traversal attacks in session.py:17",
-      "passes": false
-    },
-    {
-      "category": "Security",
-      "description": "Missing Audio File Extension Validation",
-      "expected_behavior": "Add validation to ensure only audio file formats are accepted in upload endpoints to prevent arbitrary file uploads",
-      "passes": false
-    },
-    {
-      "category": "Security",
       "description": "CORS Configuration Too Permissive",
       "expected_behavior": "Restrict CORS origins to specific frontend domain in production configuration instead of allowing all origins",
       "passes": false
@@ -76,6 +64,48 @@
       "category": "Backend Bug",
       "description": "TTS Language Support Gap",
       "expected_behavior": "Add backend validation to ensure frontend language selections match supported languages in LANGUAGE_CONFIG (English, Spanish, French, Italian, Portuguese) and verify frontend only shows supported options",
+      "passes": false
+    },
+    {
+      "category": "Backend Bug",
+      "description": "First greeting in wrong language",
+      "expected_behavior": "Ensure the first greeting and topic asking sentence is in the user's target language instead of English",
+      "passes": false
+    },
+    {
+      "category": "Frontend Bug",
+      "description": "Chat history visible during session",
+      "expected_behavior": "Hide chat history during speaking practice and only show it at the end. During session, display waveform with turn count (e.g. 2/15)",
+      "passes": false
+    },
+    {
+      "category": "Backend Bug",
+      "description": "LLM formatting breaks TTS",
+      "expected_behavior": "Ensure LLM returns only pure sentences without formatting in prompts. Add check to remove formatting characters like '*' before TTS processing",
+      "passes": false
+    },
+    {
+      "category": "Frontend Bug",
+      "description": "Abrupt session ending",
+      "expected_behavior": "On last turn, disable voice input, wait for LLM to finish response, play audio, then show 'See Summary' button instead of immediately showing summary screen",
+      "passes": false
+    },
+    {
+      "category": "Frontend Bug",
+      "description": "Summary feedback lacks context",
+      "expected_behavior": "In detailed feedback, show both what the AI said and user said. For user's lines, display original and corrected sentences side by side (top/bottom)",
+      "passes": false
+    },
+    {
+      "category": "Frontend Bug",
+      "description": "History card misalignment",
+      "expected_behavior": "Fix alignment issue where 'Select a session to view details' card doesn't align with session cards due to 'Sessions' title pushing cards",
+      "passes": false
+    },
+    {
+      "category": "Backend Bug",
+      "description": "LLM language level mismatch",
+      "expected_behavior": "Explicitly instruct LLM in prompts to not use language level too much above the user's CEFR level",
       "passes": false
     }
   ]

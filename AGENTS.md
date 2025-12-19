@@ -11,7 +11,7 @@ This is an AI-powered speaking practice application that helps users improve the
 ### Backend
 ```bash
 cd backend
-uv run uvicorn app.main:app --reload
+uv run dev       # Development server with auto-reload (http://localhost:8000)
 ```
 
 ### Frontend

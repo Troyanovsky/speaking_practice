@@ -6,6 +6,7 @@ from app.api.v1.api import api_router
 from app.services.asr_service import asr_service
 from app.services.tts_service import tts_service
 import os
+import uvicorn
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
@@ -37,3 +38,7 @@ app.mount("/static", StaticFiles(directory=settings.AUDIO_OUTPUT_DIR), name="sta
 @app.get("/")
 def read_root():
     return {"message": "Welcome to Speaking Practice App API"}
+
+def main():
+    """Main entry point for the dev command"""
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
