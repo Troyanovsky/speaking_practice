@@ -44,7 +44,7 @@ class TTSService:
             self.pipeline_object = None
             self.current_lang_code = None
 
-    async def synthesize(self, text: str, target_language: str = "English") -> str:
+    async def synthesize(self, text: str, target_language: str = "English", session_id: Optional[str] = None) -> str:
         # Get config for the target language, fallback to English
         config = LANGUAGE_CONFIG.get(target_language, LANGUAGE_CONFIG['English'])
         lang_code = config['lang_code']
@@ -59,7 +59,8 @@ class TTSService:
 
         try:
             # Generate unique filename
-            filename = f"{uuid.uuid4()}.wav"
+            uid = str(uuid.uuid4())
+            filename = f"{session_id}_{uid}.wav" if session_id else f"{uid}.wav"
             output_path = os.path.join(settings.AUDIO_OUTPUT_DIR, filename)
             
             # Generate audio

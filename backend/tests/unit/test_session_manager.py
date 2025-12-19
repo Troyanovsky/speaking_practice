@@ -37,7 +37,12 @@ def mock_history_service():
         yield mock
 
 @pytest.fixture
-def session_manager(mock_llm_service, mock_asr_service, mock_tts_service, mock_history_service):
+def mock_cleanup_session_files():
+    with patch("app.services.session_manager.cleanup_session_files") as mock:
+        yield mock
+
+@pytest.fixture
+def session_manager(mock_llm_service, mock_asr_service, mock_tts_service, mock_history_service, mock_cleanup_session_files):
     return SessionManager()
 
 @pytest.mark.asyncio
@@ -60,7 +65,8 @@ async def test_create_session(session_manager, mock_llm_service, mock_tts_servic
     mock_llm_service.generate_greeting.assert_called_once_with("Spanish", "A1")
     mock_tts_service.synthesize.assert_called_once_with(
         "Hola, amigo", 
-        target_language="Spanish"
+        target_language="Spanish",
+        session_id=response.session_id
     )
 
 @pytest.mark.asyncio
@@ -87,7 +93,8 @@ async def test_process_turn_normal(session_manager, mock_asr_service, mock_llm_s
     mock_llm_service.get_response.assert_called_once()
     mock_tts_service.synthesize.assert_called_with(
         MOCK_AI_TEXT, 
-        target_language="Spanish"
+        target_language="Spanish",
+        session_id=session_id
     )
 
 @pytest.mark.asyncio
@@ -117,7 +124,7 @@ async def test_process_turn_stop_word(session_manager, mock_asr_service, mock_ll
     assert "wrap-up" in history_arg[-1]["content"]
 
 @pytest.mark.asyncio
-async def test_end_session(session_manager, mock_history_service, mock_llm_service):
+async def test_end_session(session_manager, mock_history_service, mock_llm_service, mock_cleanup_session_files):
     # Setup session
     settings = SessionCreate(
         primary_language="English", 
@@ -132,6 +139,7 @@ async def test_end_session(session_manager, mock_history_service, mock_llm_servi
     assert analysis is not None
     mock_llm_service.analyze_grammar.assert_called_once()
     mock_history_service.save_session.assert_called_once()
+    mock_cleanup_session_files.assert_called_once_with(session_id)
     
     # Verify session is inactive
     assert session_manager.sessions[session_id]["is_active"] is False
@@ -162,7 +170,7 @@ async def test_process_turn_max_turns(session_manager, mock_asr_service, mock_ll
     assert any("final turn" in msg["content"] for msg in system_messages)
 
 @pytest.mark.asyncio
-async def test_cleanup_expired_sessions(session_manager):
+async def test_cleanup_expired_sessions(session_manager, mock_cleanup_session_files):
     from datetime import datetime, timezone, timedelta
     
     # Create 3 sessions
@@ -185,3 +193,6 @@ async def test_cleanup_expired_sessions(session_manager):
     assert s1.session_id not in session_manager.sessions
     assert s2.session_id in session_manager.sessions
     assert s3.session_id in session_manager.sessions
+    
+    # Verify cleanup was called for s1
+    mock_cleanup_session_files.assert_called_with(s1.session_id)

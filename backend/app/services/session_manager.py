@@ -6,6 +6,7 @@ from app.services.llm_service import llm_service
 from app.services.asr_service import asr_service
 from app.services.tts_service import tts_service
 from app.services.history_service import history_service
+from app.core.audio import cleanup_session_files
 
 class SessionManager:
     def __init__(self):
@@ -31,7 +32,8 @@ class SessionManager:
         # Synthesize audio for the greeting
         greeting_audio_url = await tts_service.synthesize(
             greeting, 
-            target_language=settings.target_language
+            target_language=settings.target_language,
+            session_id=session_id
         )
         
         self.sessions[session_id]["history"].append({"role": "assistant", "content": greeting})
@@ -76,7 +78,8 @@ class SessionManager:
             # Synthesize
             ai_audio_url = await tts_service.synthesize(
                 ai_text,
-                target_language=session["settings"].target_language
+                target_language=session["settings"].target_language,
+                session_id=session_id
             )
             
             session["is_active"] = False
@@ -109,7 +112,8 @@ class SessionManager:
         # 3. Synthesize Audio
         ai_audio_url = await tts_service.synthesize(
             ai_text,
-            target_language=session["settings"].target_language
+            target_language=session["settings"].target_language,
+            session_id=session_id
         )
         
         return TurnResponse(
@@ -140,6 +144,9 @@ class SessionManager:
             feedback=[f.model_dump() for f in analysis.feedback]
         )
         
+        # 2. Perform cleanup of audio files
+        cleanup_session_files(session_id)
+        
         return analysis
 
     def get_session_history(self, session_id: str) -> List[Turn]:
@@ -169,6 +176,8 @@ class SessionManager:
                 expired_ids.append(session_id)
         
         for session_id in expired_ids:
+            # Clean up audio files before removing from memory
+            cleanup_session_files(session_id)
             del self.sessions[session_id]
             
         return len(expired_ids)

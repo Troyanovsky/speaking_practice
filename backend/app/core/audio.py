@@ -77,3 +77,30 @@ def save_upload_file(upload_file: BinaryIO, destination: str) -> str:
             return destination
         except:
             raise e
+
+def cleanup_session_files(session_id: str):
+    """
+    Deletes all uploaded and generated audio files associated with a session.
+    """
+    from app.core.config import settings
+    
+    # Sanitize session_id just in case
+    safe_session_id = sanitize_filename(session_id)
+    
+    # Check upload directory
+    if os.path.exists(settings.AUDIO_UPLOAD_DIR):
+        for filename in os.listdir(settings.AUDIO_UPLOAD_DIR):
+            if filename.startswith(safe_session_id):
+                try:
+                    os.remove(os.path.join(settings.AUDIO_UPLOAD_DIR, filename))
+                except Exception as e:
+                    print(f"Error deleting upload file {filename}: {e}")
+                    
+    # Check output directory
+    if os.path.exists(settings.AUDIO_OUTPUT_DIR):
+        for filename in os.listdir(settings.AUDIO_OUTPUT_DIR):
+            if filename.startswith(safe_session_id):
+                try:
+                    os.remove(os.path.join(settings.AUDIO_OUTPUT_DIR, filename))
+                except Exception as e:
+                    print(f"Error deleting output file {filename}: {e}")

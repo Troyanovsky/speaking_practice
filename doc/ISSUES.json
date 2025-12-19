@@ -13,12 +13,6 @@
       "passes": false
     },
     {
-      "category": "Backend Architecture",
-      "description": "Audio File Management",
-      "expected_behavior": "Implement cleanup job to delete uploaded and generated audio files after session ends to prevent disk space exhaustion.",
-      "passes": false
-    },
-    {
       "category": "Backend Bug",
       "description": "TTS Error Audio File Missing",
       "expected_behavior": "Create or ensure error.wav file exists at /static/error.wav path, or implement proper error handling for missing error audio",

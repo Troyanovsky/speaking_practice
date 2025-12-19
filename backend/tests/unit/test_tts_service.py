@@ -24,14 +24,15 @@ async def test_synthesize_success(tts_service, mock_pipeline_class):
         # Test Default (English)
         result = await tts_service.synthesize("Hello")
         assert result.startswith("/static/")
-        mock_pipeline_class.assert_called_with(lang_code='a')
+        mock_pipeline_class.assert_called_with(lang_code='a', repo_id='hexgrad/Kokoro-82M')
         mock_pipeline_instance.assert_called_with("Hello", voice='af_heart', speed=1, split_pattern=r'\n+')
 
-        # Test Spanish
+        # Test Spanish with session_id
         mock_pipeline_class.reset_mock()
-        result = await tts_service.synthesize("Hola", target_language="Spanish")
-        assert result.startswith("/static/")
-        mock_pipeline_class.assert_called_with(lang_code='e')
+        session_id = "test-session"
+        result = await tts_service.synthesize("Hola", target_language="Spanish", session_id=session_id)
+        assert result.startswith(f"/static/{session_id}_")
+        mock_pipeline_class.assert_called_with(lang_code='e', repo_id='hexgrad/Kokoro-82M')
         mock_pipeline_instance.assert_called_with("Hola", voice='ef_dora', speed=1, split_pattern=r'\n+')
 
 @pytest.mark.asyncio
