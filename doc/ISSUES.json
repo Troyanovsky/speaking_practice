@@ -13,15 +13,9 @@
       "passes": false
     },
     {
-      "category": "Backend Bug",
-      "description": "Session Memory Leak",
-      "expected_behavior": "Implement session cleanup mechanism to remove completed sessions from memory after a timeout to prevent memory exhaustion",
-      "passes": false
-    },
-    {
       "category": "Backend Architecture",
       "description": "Audio File Management",
-      "expected_behavior": "Implement cleanup job to delete uploaded and generated audio files older than X hours or after session ends to prevent disk space exhaustion. Make the expiration time a user setting.",
+      "expected_behavior": "Implement cleanup job to delete uploaded and generated audio files after session ends to prevent disk space exhaustion.",
       "passes": false
     },
     {

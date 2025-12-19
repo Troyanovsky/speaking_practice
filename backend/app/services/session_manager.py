@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timezone
 from typing import Dict, List, Optional
 from app.schemas.session import SessionCreate, Turn, SessionResponse, TurnResponse, SessionAnalysis
 from app.services.llm_service import llm_service
@@ -17,7 +18,8 @@ class SessionManager:
             "settings": settings,
             "history": [],
             "turn_count": 0,
-            "is_active": True
+            "is_active": True,
+            "last_activity": datetime.now(timezone.utc)
         }
         
         # Generate LLM greeting based on user settings
@@ -44,6 +46,9 @@ class SessionManager:
         session = self.sessions.get(session_id)
         if not session or not session["is_active"]:
             raise ValueError("Session not found or inactive")
+
+        # Update last activity
+        session["last_activity"] = datetime.now(timezone.utc)
 
         # 1. Transcribe
         user_text = await asr_service.transcribe(audio_file_path)
@@ -143,5 +148,29 @@ class SessionManager:
             return []
         
         return [Turn(role=h["role"], text=h["content"]) for h in session["history"]]
+
+    def cleanup_expired_sessions(self, max_age_seconds: int = 3600) -> int:
+        """
+        Removes sessions that haven't been active for max_age_seconds.
+        Returns the number of sessions removed.
+        """
+        now = datetime.now(timezone.utc)
+        expired_ids = []
+        
+        for session_id, session in self.sessions.items():
+            last_activity = session.get("last_activity")
+            if not last_activity:
+                # Fallback for sessions created before this change (if any exist in long-running process)
+                expired_ids.append(session_id)
+                continue
+                
+            delta = (now - last_activity).total_seconds()
+            if delta > max_age_seconds:
+                expired_ids.append(session_id)
+        
+        for session_id in expired_ids:
+            del self.sessions[session_id]
+            
+        return len(expired_ids)
 
 session_manager = SessionManager()

@@ -160,3 +160,28 @@ async def test_process_turn_max_turns(session_manager, mock_asr_service, mock_ll
     # Check if the system message for wrap-up was at least present in the history passed
     system_messages = [msg for msg in last_call_history if msg["role"] == "system"]
     assert any("final turn" in msg["content"] for msg in system_messages)
+
+@pytest.mark.asyncio
+async def test_cleanup_expired_sessions(session_manager):
+    from datetime import datetime, timezone, timedelta
+    
+    # Create 3 sessions
+    s1 = await session_manager.create_session(SessionCreate(primary_language="en", target_language="es", proficiency_level="A1"))
+    s2 = await session_manager.create_session(SessionCreate(primary_language="en", target_language="es", proficiency_level="A1"))
+    s3 = await session_manager.create_session(SessionCreate(primary_language="en", target_language="es", proficiency_level="A1"))
+    
+    # Set s1 to be very old (2 hours)
+    session_manager.sessions[s1.session_id]["last_activity"] = datetime.now(timezone.utc) - timedelta(hours=2)
+    
+    # Set s2 to be slightly old (30 mins)
+    session_manager.sessions[s2.session_id]["last_activity"] = datetime.now(timezone.utc) - timedelta(minutes=30)
+    
+    # s3 is brand new
+    
+    # Cleanup sessions older than 1 hour
+    removed = session_manager.cleanup_expired_sessions(max_age_seconds=3600)
+    
+    assert removed == 1
+    assert s1.session_id not in session_manager.sessions
+    assert s2.session_id in session_manager.sessions
+    assert s3.session_id in session_manager.sessions

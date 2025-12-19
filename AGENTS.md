@@ -27,9 +27,10 @@ npm test         # Run frontend tests
 ## Testing
 
 ### Backend
-Run pytest from the backend directory:
+Install dev extras and run pytest from the backend directory:
 ```bash
 cd backend
+uv sync --dev  # Install pytest and other dev dependencies
 uv run pytest -v
 ```
 
