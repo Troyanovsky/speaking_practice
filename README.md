@@ -1,14 +1,15 @@
-# AI Speaking Practice App
+# AI Speaking Practice - Call with Luna
 
-An AI-powered application to help users improve speaking and listening skills through interactive conversation sessions. The app uses advanced AI models for Speech-to-Text (ASR), Text-to-Speech (TTS), and conversation logic (LLM).
+Improve your foreign-language speaking and listening with AI-powered conversations that feel like talking to a real person. Inspired by Duolingo Max's "Call with Lily," this app creates an immersive speaking environment where you can practice your target language anytime, anywhere.
 
 ## Features
 
-- **Interactive Conversation**: Real-time voice interaction with an AI tutor.
-- **Multi-language Support**: Designed to support English, Spanish, French, Italian, and Portuguese.
-- **Feedback & Analysis**: Provides grammar and vocabulary feedback after each session.
-- **Conversation History**: Access past sessions to review progress and previous feedback.
-- **Local AI Inference**: Optimized for local execution using Parakeet (ASR) and Kokoro (TTS).
+- **Natural Conversations**: Hold free-flowing voice conversations with an AI tutor that adapts to your skill level and speaking pace
+- **Confidence Building**: Practice in a judgment-free zone where mistakes are part of learning—no embarrassment, just progress
+- **Real-World Scenarios**: Practice everyday conversations that prepare you for actual interactions with native speakers
+- **Instant Feedback**: Get helpful corrections and suggestions without interrupting the flow of conversation
+- **Multi-language Support**: Practice English, Spanish, French, Italian, and Portuguese at your own pace
+- **Session Reviews**: Access conversation transcripts to review what you learned and track your improvement over time
 
 ## Tech Stack
 
@@ -103,20 +104,21 @@ npm test  # Run Vitest tests
 
 ## Usage
 
-1. Open the frontend URL in your browser.
-2. Select your primary language, target language, and proficiency level (A1-C2).
-3. Click **Start New Session**.
-4. Allow microphone access when prompted.
-5. **Hold Spacebar** to speak. Release to send your audio.
-6. The AI will reply with audio and text, tailored to your proficiency level.
-7. The session ends automatically after 15 turns or if you say "Stop".
+1. Open the app in your browser and start a conversation
+2. Select your primary language, target language, and proficiency level (A1-C2)
+3. Click **Start New Session** to begin your conversation
+4. Allow microphone access when prompted
+5. **Hold Spacebar** to speak naturally—just like talking to a friend! Release when you're done
+6. Your AI tutor responds immediately with both audio and text, adapting to your level
+7. Sessions last about 15 turns, or say your stop word anytime to end early
+8. Review your conversation history to see how much you've improved!
 
 ## Troubleshooting
 
-- **ASR/TTS Errors**: If you see "This is a mock transcription" or hear mock audio, it means the backend handling failed to load the real libraries (likely due to missing dependencies or unsupported platform) and fell back to the mock implementation. Check the backend console logs.
-- **Dependencies**: `nemo_toolkit` can be tricky to install on some Windows setups. Refer to NVIDIA NeMo documentation.
-- **Session Cleanup**: Sessions automatically expire after 1 hour. Audio files are cleaned up every 10 minutes to prevent disk space issues.
-- **Error Notifications**: The app provides structured error feedback. Check browser notifications for detailed error messages.
+- **Hearing "This is a mock transcription"?** This means the app is using a backup voice recognition system. Check the backend console logs for installation issues.
+- **Voice Recognition Not Working?** Make sure your microphone is connected and you've granted browser permissions. Some platforms need additional setup—check the installation guide below.
+- **Session Timeouts**: Conversations automatically end after 1 hour to keep the app running smoothly. Just start a new session to continue practicing!
+- **Error Messages**: Watch for browser notifications—they'll give you specific details about what's happening.
 
 ## Documentation
 
