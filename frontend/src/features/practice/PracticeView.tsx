@@ -127,7 +127,7 @@ const PracticeView: React.FC = () => {
     }, [turns]);
 
     if (analysis) {
-        return <SessionReview analysis={analysis} onClose={handleCloseReview} />;
+        return <SessionReview analysis={analysis} onClose={handleCloseReview} turns={turns} />;
     }
 
     return (
@@ -213,13 +213,58 @@ const PracticeView: React.FC = () => {
                     </div>
                 )}
 
-                {turns.map((turn, index) => (
-                    <div key={index} className={`mb-4 flex ${turn.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[80%] rounded-lg p-3 ${turn.role === 'user' ? 'bg-blue-100 text-blue-900' : 'bg-gray-100 text-gray-900'}`}>
-                            <p>{turn.text}</p>
+                {/* Active session: show waveform with turn counter instead of chat history */}
+                {sessionId && isActive && (
+                    <div className="flex flex-col justify-center items-center h-full space-y-8">
+                        <div className="text-center">
+                            <h2 className="text-2xl font-semibold text-gray-800 mb-2">Session in Progress</h2>
+                            <p className="text-gray-600">Focus on your conversation with the AI</p>
+                        </div>
+                        
+                        {/* Waveform visualization */}
+                        <div className="w-full max-w-md">
+                            <div className="flex items-center justify-center space-x-1">
+                                {[...Array(20)].map((_, i) => (
+                                    <div
+                                        key={i}
+                                        className="bg-blue-500 rounded-full animate-pulse"
+                                        style={{
+                                            width: '4px',
+                                            height: `${20 + Math.sin(i * 0.5) * 15}px`,
+                                            animationDelay: `${i * 0.1}s`
+                                        }}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                        
+                        {/* Turn counter */}
+                        <div className="text-center">
+                            <div className="text-3xl font-bold text-blue-600">
+                                {Math.floor(turns.length / 2)}/15
+                            </div>
+                            <p className="text-sm text-gray-500 mt-1">Turns completed</p>
+                        </div>
+                        
+                        <div className="text-center max-w-sm">
+                            <p className="text-xs text-gray-400">
+                                Chat history will be available at the end of the session
+                            </p>
                         </div>
                     </div>
-                ))}
+                )}
+
+                {/* Session ended but not showing analysis yet */}
+                {sessionId && !isActive && !analysis && (
+                    <div className="flex flex-col justify-center items-center h-full space-y-6">
+                        <div className="text-center">
+                            <h2 className="text-2xl font-semibold text-gray-800 mb-2">Session Ended</h2>
+                            <p className="text-gray-600">Generating your session analysis...</p>
+                        </div>
+                        
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                    </div>
+                )}
             </div>
 
             {sessionId && !analysis && (

@@ -1,9 +1,10 @@
 import React from 'react';
-import type { SessionAnalysis, Feedback } from '../../types';
+import type { SessionAnalysis, Feedback, Turn } from '../../types';
 
 interface SessionReviewProps {
     analysis: SessionAnalysis;
     onClose: () => void;
+    turns?: Turn[];
 }
 
 const FeedbackItem: React.FC<{ item: Feedback; index: number }> = ({ item, index }) => {
@@ -35,7 +36,7 @@ const FeedbackItem: React.FC<{ item: Feedback; index: number }> = ({ item, index
     );
 };
 
-const SessionReview: React.FC<SessionReviewProps> = ({ analysis, onClose }) => {
+const SessionReview: React.FC<SessionReviewProps> = ({ analysis, onClose, turns }) => {
     return (
         <div className="flex flex-col h-full bg-gray-50 overflow-y-auto">
             <div className="max-w-3xl mx-auto w-full p-4 space-y-6">
@@ -51,6 +52,25 @@ const SessionReview: React.FC<SessionReviewProps> = ({ analysis, onClose }) => {
                         {analysis.summary}
                     </p>
                 </section>
+
+                {/* Chat History Section */}
+                {turns && turns.length > 0 && (
+                    <section>
+                        <h2 className="text-xl font-bold text-gray-800 mb-4 px-1">Conversation History</h2>
+                        <div className="bg-white rounded-lg shadow-sm p-6 space-y-4 max-h-96 overflow-y-auto">
+                            {turns.map((turn, index) => (
+                                <div key={index} className={`flex ${turn.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                    <div className={`max-w-[80%] rounded-lg p-3 ${turn.role === 'user' ? 'bg-blue-100 text-blue-900' : 'bg-gray-100 text-gray-900'}`}>
+                                        <div className="text-xs font-semibold mb-1 text-gray-500">
+                                            {turn.role === 'user' ? 'You' : 'AI'}
+                                        </div>
+                                        <p>{turn.text}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
 
                 {/* Feedback Section */}
                 <section>

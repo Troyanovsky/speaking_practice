@@ -38,7 +38,7 @@ An AI-powered application to help users improve speaking and listening skills th
 
 3. Install dependencies and run the server:
    ```bash
-   uv sync
+   uv sync --dev  # Install dependencies including dev extras for testing
    uv run dev
    ```
    > **Note**: `uv` will automatically create a virtual environment and install dependencies from `pyproject.toml` on the first run. This includes platform-specific ASR libraries (`parakeet-mlx` for Mac, `nemo_toolkit` for Windows). Ensure you have `ffmpeg` installed on your system.
@@ -64,6 +64,13 @@ LLM_MODEL=gpt-4o
 
 The API will be available at `http://localhost:8000`. API Docs at `http://localhost:8000/docs`.
 
+#### Testing
+Run the backend test suite:
+```bash
+cd backend
+uv run pytest -v  # Run all tests with verbose output
+```
+
 ### Security Note
 
 > [!CAUTION]
@@ -87,6 +94,13 @@ The API will be available at `http://localhost:8000`. API Docs at `http://localh
    ```
    The app will typically run at `http://localhost:5173`.
 
+#### Testing
+Run the frontend test suite:
+```bash
+cd frontend
+npm test  # Run Vitest tests
+```
+
 ## Usage
 
 1. Open the frontend URL in your browser.
@@ -101,6 +115,8 @@ The API will be available at `http://localhost:8000`. API Docs at `http://localh
 
 - **ASR/TTS Errors**: If you see "This is a mock transcription" or hear mock audio, it means the backend handling failed to load the real libraries (likely due to missing dependencies or unsupported platform) and fell back to the mock implementation. Check the backend console logs.
 - **Dependencies**: `nemo_toolkit` can be tricky to install on some Windows setups. Refer to NVIDIA NeMo documentation.
+- **Session Cleanup**: Sessions automatically expire after 1 hour. Audio files are cleaned up every 10 minutes to prevent disk space issues.
+- **Error Notifications**: The app provides structured error feedback. Check browser notifications for detailed error messages.
 
 ## Documentation
 

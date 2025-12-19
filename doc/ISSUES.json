@@ -39,14 +39,14 @@
     {
       "category": "Backend Bug",
       "description": "TTS Language Support Gap",
-      "expected_behavior": "Add backend validation to ensure frontend language selections match supported languages in LANGUAGE_CONFIG (English, Spanish, French, Italian, Portuguese) and verify frontend only shows supported options",
+      "expected_behavior": "Add backend validation to ensure frontend language selections match supported languages in LANGUAGE_CONFIG (English, Spanish, French, Italian, Portuguese) and double-check that frontend only shows supported options",
       "passes": false
     },
     {
       "category": "Frontend Bug",
       "description": "Chat history visible during session",
-      "expected_behavior": "Hide chat history during speaking practice and only show it at the end. During session, display waveform with turn count (e.g. 2/15)",
-      "passes": false
+      "expected_behavior": "Hide chat history during speaking practice and only show it at the end. During session, display waveform with turn count (e.g. x/15)",
+      "passes": true
     },
     {
       "category": "Backend Bug",
@@ -61,21 +61,21 @@
       "passes": false
     },
     {
-      "category": "Frontend Bug",
-      "description": "Summary feedback lacks context",
-      "expected_behavior": "In detailed feedback, show both what the AI said and user said. For user's lines, display original and corrected sentences side by side (top/bottom)",
-      "passes": false
-    },
-    {
-      "category": "Frontend Bug",
-      "description": "History card misalignment",
-      "expected_behavior": "Fix alignment issue where 'Select a session to view details' card doesn't align with session cards due to 'Sessions' title pushing cards",
-      "passes": false
-    },
-    {
       "category": "Backend Bug",
       "description": "LLM language level mismatch",
       "expected_behavior": "Explicitly instruct LLM in prompts to not use language level too much above the user's CEFR level",
+      "passes": false
+    },
+    {
+      "category": "UX",
+      "description": "Missing Stop Session Button",
+      "expected_behavior": "Add a stop session button in the frontend during practice sessions that functions similarly to the stop word, allowing users to manually trigger session wrap-up and ending",
+      "passes": false
+    },
+    {
+      "category": "Unconfirmed Bug",
+      "description": "Session Settings Not Persisted",
+      "expected_behavior": "Persist primary language, target language, level, and stop word settings adjusted before the session similar to settings, so users don't need to reconfigure them for each session",
       "passes": false
     }
   ]
