@@ -8,6 +8,8 @@ from app.services.tts_service import tts_service
 from app.services.history_service import history_service
 from app.core.audio import cleanup_session_files
 
+from app.core.exceptions import SessionNotFoundError, SessionError
+
 class SessionManager:
     def __init__(self):
         self.sessions: Dict[str, Dict] = {}
@@ -23,31 +25,42 @@ class SessionManager:
             "last_activity": datetime.now(timezone.utc)
         }
         
-        # Generate LLM greeting based on user settings
-        greeting = await llm_service.generate_greeting(
-            settings.target_language,
-            settings.proficiency_level
-        )
-        
-        # Synthesize audio for the greeting
-        greeting_audio_url = await tts_service.synthesize(
-            greeting, 
-            target_language=settings.target_language,
-            session_id=session_id
-        )
-        
-        self.sessions[session_id]["history"].append({"role": "assistant", "content": greeting})
-        
-        return SessionResponse(
-            session_id=session_id,
-            turns=[Turn(role="system", text=greeting, audio_url=greeting_audio_url)],
-            is_active=True
-        )
+        try:
+            # Generate LLM greeting based on user settings
+            greeting = await llm_service.generate_greeting(
+                settings.target_language,
+                settings.proficiency_level
+            )
+            
+            # Synthesize audio for the greeting
+            greeting_audio_url = await tts_service.synthesize(
+                greeting, 
+                target_language=settings.target_language,
+                session_id=session_id
+            )
+            
+            self.sessions[session_id]["history"].append({"role": "assistant", "content": greeting})
+            
+            return SessionResponse(
+                session_id=session_id,
+                turns=[Turn(role="assistant", text=greeting, audio_url=greeting_audio_url)],
+                is_active=True
+            )
+        except Exception as e:
+            # If initialization fails, clean up the session entry
+            if session_id in self.sessions:
+                del self.sessions[session_id]
+            if isinstance(e, (LLMError, TTSError)):
+                raise e
+            raise SessionError(message=f"Failed to start session: {str(e)}")
 
     async def process_turn(self, session_id: str, audio_file_path: str) -> TurnResponse:
         session = self.sessions.get(session_id)
-        if not session or not session["is_active"]:
-            raise ValueError("Session not found or inactive")
+        if not session:
+            raise SessionNotFoundError(session_id)
+        
+        if not session["is_active"]:
+            raise SessionError(message="Cannot process turn on an inactive session")
 
         # Update last activity
         session["last_activity"] = datetime.now(timezone.utc)
@@ -126,7 +139,7 @@ class SessionManager:
     async def end_session(self, session_id: str) -> SessionAnalysis:
         session = self.sessions.get(session_id)
         if not session:
-            raise ValueError("Session not found")
+            raise SessionNotFoundError(session_id)
         
         session["is_active"] = False
         analysis = await llm_service.analyze_grammar(session["history"])

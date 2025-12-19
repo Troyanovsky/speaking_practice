@@ -62,10 +62,13 @@ async def test_synthesize_no_model(tts_service):
         result = await tts_service.synthesize("Hello")
         assert result == "/static/mock_audio.wav"
 
+from app.core.exceptions import TTSError
+
 @pytest.mark.asyncio
 async def test_synthesize_error(tts_service, mock_pipeline_class):
     mock_pipeline_instance = mock_pipeline_class.return_value
     mock_pipeline_instance.side_effect = Exception("TTS Error")
     
-    result = await tts_service.synthesize("Hello")
-    assert result == "/static/error_tts.wav"
+    with pytest.raises(TTSError) as excinfo:
+        await tts_service.synthesize("Hello")
+    assert "Synthesis failed" in str(excinfo.value)

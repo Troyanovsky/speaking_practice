@@ -6,6 +6,8 @@ from app.core.config import settings
 
 from app.services.settings_service import settings_service
 
+from app.core.exceptions import LLMError
+
 class LLMService:
     def __init__(self):
         # Client is now created dynamically per request to support setting changes
@@ -44,9 +46,7 @@ Respond in {target_language}. Keep the greeting concise (2-3 sentences)."""
             )
             return response.choices[0].message.content
         except Exception as e:
-            print(f"Greeting Generation Error: {e}")
-            # Fallback to a simple greeting
-            return f"Hello! Let's practice {target_language} today. What would you like to talk about?"
+            raise LLMError(message=f"Greeting generation failed: {str(e)}")
 
     async def get_response(self, history: List[Dict[str, str]], 
                            target_language: str = "English",
@@ -71,8 +71,7 @@ Respond in {target_language}."""
             )
             return response.choices[0].message.content
         except Exception as e:
-            print(f"LLM Error: {e}")
-            return "I apologize, but I'm having trouble connecting to my brain right now."
+            raise LLMError(message=f"Failed to get LLM response: {str(e)}")
 
     async def generate_summary(self, history: List[Dict[str, str]]) -> str:
         client, model = self._get_client()
@@ -87,8 +86,8 @@ Respond in {target_language}."""
                 messages=messages
             )
             return response.choices[0].message.content
-        except Exception:
-            return "Summary unavailable."
+        except Exception as e:
+            raise LLMError(message=f"Summary generation failed: {str(e)}")
 
     async def analyze_grammar(self, history: List[Dict[str, str]]) -> SessionAnalysis:
         client, model = self._get_client()
@@ -122,8 +121,6 @@ Respond in {target_language}."""
             data = json.loads(response.choices[0].message.content)
             return SessionAnalysis(**data)
         except Exception as e:
-            print(f"Analysis Error: {e}")
-            # Fallback
-            return SessionAnalysis(summary="Could not perform analysis.", feedback=[])
+            raise LLMError(message=f"Analysis failure: {str(e)}")
 
 llm_service = LLMService()

@@ -9,6 +9,26 @@ export const api = axios.create({
     },
 });
 
+// Add interceptor for error handling
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        const message = error.response?.data?.message || error.message || 'An unexpected error occurred';
+        // We'll use a custom event or a similar mechanism since we can't use hooks here easily
+        // Or better, let's export a function to set a dispatcher
+        if (apiErrorHandler) {
+            apiErrorHandler(message);
+        }
+        return Promise.reject(error);
+    }
+);
+
+let apiErrorHandler: ((message: string) => void) | null = null;
+
+export const setApiErrorHandler = (handler: (message: string) => void) => {
+    apiErrorHandler = handler;
+};
+
 export const sessionApi = {
     startSession: async (data: { primary_language: string, target_language: string, proficiency_level: string }) => {
         const response = await api.post('/session/start', data);

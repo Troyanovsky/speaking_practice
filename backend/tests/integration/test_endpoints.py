@@ -33,8 +33,10 @@ def test_start_session(mock_session_manager):
     assert response.json()["session_id"] == "test-id"
     mock_session_manager.create_session.assert_called_once()
 
+from app.core.exceptions import SessionNotFoundError
+
 def test_process_turn_not_found(mock_session_manager):
-    mock_session_manager.process_turn = AsyncMock(side_effect=ValueError("Session not found"))
+    mock_session_manager.process_turn = AsyncMock(side_effect=SessionNotFoundError("test-id"))
     
     # Mock save_upload_file
     with patch("app.api.v1.endpoints.session.save_upload_file", return_value="/tmp/test.wav"):
@@ -44,7 +46,9 @@ def test_process_turn_not_found(mock_session_manager):
         )
         
         assert response.status_code == 404
-        assert response.json()["detail"] == "Session not found"
+        data = response.json()
+        assert data["error_code"] == "SESSION_NOT_FOUND"
+        assert "test-id" in data["message"]
 
 def test_get_history(mock_history_service):
     mock_history_service.get_all_sessions.return_value = [

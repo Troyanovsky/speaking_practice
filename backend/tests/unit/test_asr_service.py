@@ -36,6 +36,8 @@ async def test_transcribe_no_model(asr_service):
     result = await asr_service.transcribe("dummy.wav")
     assert "mock transcription" in result
 
+from app.core.exceptions import ASRError
+
 @pytest.mark.asyncio
 async def test_transcribe_error(asr_service):
     with patch("sys.platform", "darwin"):
@@ -43,5 +45,6 @@ async def test_transcribe_error(asr_service):
         mock_model.transcribe.side_effect = Exception("ASR Error")
         asr_service.model = mock_model
         
-        result = await asr_service.transcribe("dummy.wav")
-        assert result == "Error during transcription."
+        with pytest.raises(ASRError) as excinfo:
+            await asr_service.transcribe("dummy.wav")
+        assert "Transcription failed" in str(excinfo.value)

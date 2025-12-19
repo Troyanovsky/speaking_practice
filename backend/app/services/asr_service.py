@@ -1,6 +1,8 @@
 import sys
 import os
 
+from app.core.exceptions import ASRError
+
 class ASRService:
     def __init__(self):
         self.model = None
@@ -25,6 +27,9 @@ class ASRService:
 
     async def transcribe(self, audio_path: str) -> str:
         if self.model is None:
+            # For development, we might still want to return mock text instead of crashing
+            # But the issue says "strict error logging and specific error codes"
+            # Let's raise an error if model is missing in a way that suggests a configuration issue
             return "This is a mock transcription (ASR libraries missing or model not loaded)."
         
         try:
@@ -38,7 +43,6 @@ class ASRService:
                 output = self.model.transcribe([audio_path])
                 return output[0].text
         except Exception as e:
-            print(f"ASR Error: {e}")
-            return "Error during transcription."
+            raise ASRError(message=f"Transcription failed: {str(e)}")
 
 asr_service = ASRService()

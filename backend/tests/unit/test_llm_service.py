@@ -68,11 +68,13 @@ async def test_analyze_grammar(llm_service, mock_openai, mock_settings):
     assert analysis.feedback == []
     mock_openai.chat.completions.create.assert_called_once()
 
+from app.core.exceptions import LLMError
+
 @pytest.mark.asyncio
-async def test_generate_greeting_error_fallback(llm_service, mock_openai, mock_settings):
+async def test_generate_greeting_error(llm_service, mock_openai, mock_settings):
     # Force error
     mock_openai.chat.completions.create.side_effect = Exception("API Error")
     
-    greeting = await llm_service.generate_greeting("Spanish", "A1")
-    
-    assert "Hello! Let's practice Spanish today" in greeting
+    with pytest.raises(LLMError) as excinfo:
+        await llm_service.generate_greeting("Spanish", "A1")
+    assert "Greeting generation failed" in str(excinfo.value)

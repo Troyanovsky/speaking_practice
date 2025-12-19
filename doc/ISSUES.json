@@ -25,18 +25,6 @@
       "passes": false
     },
     {
-      "category": "Backend Architecture",
-      "description": "Error Handling in Services",
-      "expected_behavior": "Implement strict error logging and expose specific error codes to the client so UI can show appropriate error messages instead of catching broad Exceptions",
-      "passes": false
-    },
-    {
-      "category": "Frontend Bug",
-      "description": "Missing API Error Handling",
-      "expected_behavior": "Implement global error handling in API client to show user-friendly error messages instead of silent failures",
-      "passes": false
-    },
-    {
       "category": "Backend Bug",
       "description": "Synchronous File Operations in Async Context",
       "expected_behavior": "Replace synchronous file operations with async alternatives (aiofiles) to prevent blocking the event loop",

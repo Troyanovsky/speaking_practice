@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 
 class Turn(BaseModel):
-    role: str  # 'user' or 'system'
+    role: str  # 'user', 'assistant', or 'system'
     text: str
     audio_url: Optional[str] = None
 

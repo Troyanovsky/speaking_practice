@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from app.services.session_manager import SessionManager
 from app.schemas.session import SessionCreate
+from app.core.exceptions import SessionNotFoundError, SessionError
 
 # Mock data
 MOCK_SESSION_ID = "test-session-id"
@@ -60,6 +61,7 @@ async def test_create_session(session_manager, mock_llm_service, mock_tts_servic
     assert response.is_active is True
     assert len(response.turns) == 1
     assert response.turns[0].text == "Hola, amigo"
+    assert response.turns[0].role == "assistant"
     
     # Verify service calls
     mock_llm_service.generate_greeting.assert_called_once_with("Spanish", "A1")
@@ -96,6 +98,26 @@ async def test_process_turn_normal(session_manager, mock_asr_service, mock_llm_s
         target_language="Spanish",
         session_id=session_id
     )
+
+@pytest.mark.asyncio
+async def test_process_turn_not_found(session_manager):
+    with pytest.raises(SessionNotFoundError):
+        await session_manager.process_turn("non-existent-id", MOCK_AUDIO_PATH)
+
+@pytest.mark.asyncio
+async def test_process_turn_inactive(session_manager, mock_asr_service):
+    # Setup session
+    settings = SessionCreate(primary_language="en", target_language="es", proficiency_level="A1")
+    session_response = await session_manager.create_session(settings)
+    session_id = session_response.session_id
+    
+    # End session
+    await session_manager.end_session(session_id)
+    
+    # Try process turn
+    with pytest.raises(SessionError) as excinfo:
+        await session_manager.process_turn(session_id, MOCK_AUDIO_PATH)
+    assert "inactive" in str(excinfo.value)
 
 @pytest.mark.asyncio
 async def test_process_turn_stop_word(session_manager, mock_asr_service, mock_llm_service):

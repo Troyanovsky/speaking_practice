@@ -1,7 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
+from app.core.exceptions import AppException
 from app.api.v1.api import api_router
 from app.services.asr_service import asr_service
 from app.services.tts_service import tts_service
@@ -9,8 +11,40 @@ from app.services.session_manager import session_manager
 import os
 import uvicorn
 import asyncio
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title=settings.PROJECT_NAME)
+
+@app.exception_handler(AppException)
+async def app_exception_handler(request: Request, exc: AppException):
+    logger.error(f"AppException: {exc.error_code} - {exc.message} - Detail: {exc.detail}")
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error_code": exc.error_code,
+            "message": exc.message,
+            "detail": exc.detail
+        },
+    )
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception):
+    logger.exception("Unhandled exception occurred")
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error_code": "INTERNAL_SERVER_ERROR",
+            "message": "An unexpected error occurred",
+            "detail": str(exc)
+        },
+    )
 
 @app.on_event("startup")
 async def startup_event():
