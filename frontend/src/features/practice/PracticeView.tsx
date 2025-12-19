@@ -120,6 +120,21 @@ const PracticeView: React.FC = () => {
         setIsActive(false);
     };
 
+    const stopSession = async () => {
+        if (!sessionId) return;
+        
+        setIsLoading(true);
+        try {
+            const analysisData = await sessionApi.endSession(sessionId);
+            setIsActive(false);
+            setAnalysis(analysisData);
+        } catch (error) {
+            console.error("Failed to stop session:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     useEffect(() => {
         if (scrollRef.current) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -245,6 +260,18 @@ const PracticeView: React.FC = () => {
                             </div>
                             <p className="text-sm text-gray-500 mt-1">Turns completed</p>
                         </div>
+                        
+                        {/* Stop Session Button */}
+                        <button
+                            onClick={stopSession}
+                            disabled={isLoading}
+                            className="bg-red-600 text-white px-6 py-2 rounded-full hover:bg-red-700 transition disabled:opacity-50 flex items-center space-x-2"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <rect x="6" y="6" width="12" height="12" strokeWidth="2" rx="2"/>
+                            </svg>
+                            <span>{isLoading ? "Stopping..." : "Stop Session"}</span>
+                        </button>
                         
                         <div className="text-center max-w-sm">
                             <p className="text-xs text-gray-400">

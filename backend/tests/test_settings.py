@@ -45,7 +45,7 @@ def test_update_and_persist_settings(mock_settings_service):
     """Test that settings can be updated and are persisted to disk."""
     new_settings = {
         "primary_language": "French",
-        "target_language": "German",
+        "target_language": "Italian",
         "proficiency_level": "C1",
         "stop_word": "halt",
         "llm_base_url": "https://test.api.com",
@@ -58,7 +58,7 @@ def test_update_and_persist_settings(mock_settings_service):
     assert response.status_code == 200
     data = response.json()
     assert data["primary_language"] == "French"
-    assert data["target_language"] == "German"
+    assert data["target_language"] == "Italian"
     
     # Verify persistence
     assert os.path.exists(TEST_SETTINGS_FILE)

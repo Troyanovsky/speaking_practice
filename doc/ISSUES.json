@@ -37,19 +37,13 @@
       "passes": false
     },
     {
-      "category": "Frontend Bug",
-      "description": "Chat history visible during session",
-      "expected_behavior": "Hide chat history during speaking practice and only show it at the end. During session, display waveform with turn count (e.g. x/15)",
-      "passes": true
-    },
-    {
       "category": "Backend Bug",
       "description": "LLM formatting breaks TTS",
       "expected_behavior": "Ensure LLM returns only pure sentences without formatting in prompts. Add check to remove formatting characters like '*' before TTS processing",
       "passes": false
     },
     {
-      "category": "Frontend Bug",
+      "category": "UX",
       "description": "Abrupt session ending",
       "expected_behavior": "On last turn, disable voice input, wait for LLM to finish response, play audio, then show 'See Summary' button instead of immediately showing summary screen",
       "passes": false
@@ -58,12 +52,6 @@
       "category": "Backend Bug",
       "description": "LLM language level mismatch",
       "expected_behavior": "Explicitly instruct LLM in prompts to not use language level too much above the user's CEFR level",
-      "passes": false
-    },
-    {
-      "category": "UX",
-      "description": "Missing Stop Session Button",
-      "expected_behavior": "Add a stop session button in the frontend during practice sessions that functions similarly to the stop word, allowing users to manually trigger session wrap-up and ending",
       "passes": false
     },
     {
