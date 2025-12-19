@@ -15,6 +15,7 @@ const PracticeView: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [analysis, setAnalysis] = useState<SessionAnalysis | null>(null);
     const [isSessionEnding, setIsSessionEnding] = useState(false);
+    const [isStoppingSession, setIsStoppingSession] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
     // User-configurable language settings
@@ -44,6 +45,7 @@ const PracticeView: React.FC = () => {
         setIsLoading(true);
         setAnalysis(null);
         setIsSessionEnding(false);
+        setIsStoppingSession(false);
         try {
             const settings: SessionCreate = {
                 primary_language: primaryLanguage,
@@ -138,12 +140,13 @@ const PracticeView: React.FC = () => {
         setAnalysis(null);
         setIsActive(false);
         setIsSessionEnding(false);
+        setIsStoppingSession(false);
     };
 
     const stopSession = async () => {
         if (!sessionId) return;
         
-        setIsLoading(true);
+        setIsStoppingSession(true);
         try {
             const response = await sessionApi.stopSession(sessionId);
             setIsSessionEnding(true);
@@ -180,7 +183,7 @@ const PracticeView: React.FC = () => {
         } catch (error) {
             console.error("Failed to stop session:", error);
         } finally {
-            setIsLoading(false);
+            setIsStoppingSession(false);
         }
     };
 
@@ -313,13 +316,13 @@ const PracticeView: React.FC = () => {
                         {/* Stop Session Button */}
                         <button
                             onClick={stopSession}
-                            disabled={isLoading}
+                            disabled={isStoppingSession}
                             className="bg-red-600 text-white px-6 py-2 rounded-full hover:bg-red-700 transition disabled:opacity-50 flex items-center space-x-2"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <rect x="6" y="6" width="12" height="12" strokeWidth="2" rx="2"/>
                             </svg>
-                            <span>{isLoading ? "Stopping..." : "Stop Session"}</span>
+                            <span>{isStoppingSession ? "Stopping..." : "Stop Session"}</span>
                         </button>
                         
                         <div className="text-center max-w-sm">

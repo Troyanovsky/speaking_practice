@@ -32,20 +32,20 @@
     },
     {
       "category": "UX",
-      "description": "High Latency Due to Sequential Processing",
-      "expected_behavior": "Implement optimistic UI to reduce perception of waiting time (currently Upload + Transcribe + LLM + Synthesize + Download)",
-      "passes": false
-    },
-    {
-      "category": "Backend Bug",
-      "description": "LLM formatting breaks TTS",
-      "expected_behavior": "Ensure LLM returns only pure sentences without formatting in prompts. Add check to remove formatting characters like '*' before TTS processing",
+      "description": "Add a delete all history button",
+      "expected_behavior": "Add a button to clear all chat history at once",
       "passes": false
     },
     {
       "category": "UX",
-      "description": "Stop Session Button State",
-      "expected_behavior": "During the active session, during the user's turn when the button is temporarily disabled, it shouldn't show \"Stopping\" text. It should only show \"Stopping\" when the session is actually being stopped",
+      "description": "Improve random topic choosing at session start",
+      "expected_behavior": "Using code to randomly select a topic from a predefined list of topics instead of having LLM generate a random topic",
+      "passes": false
+    },
+        {
+      "category": "LLM Service",
+      "description": "Improve analysis & feedback language",
+      "expected_behavior": "In the analysis & feedback prompt, we should format in the primary language of the user to provide a useful summary in the user's primary language",
       "passes": false
     }
   ]
