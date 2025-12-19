@@ -30,7 +30,7 @@ export const setApiErrorHandler = (handler: (message: string) => void) => {
 };
 
 export const sessionApi = {
-    startSession: async (data: { primary_language: string, target_language: string, proficiency_level: string }) => {
+    startSession: async (data: { primary_language: string, target_language: string, proficiency_level: string, stop_word?: string }) => {
         const response = await api.post('/session/start', data);
         return response.data;
     },

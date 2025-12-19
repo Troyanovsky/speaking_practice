@@ -53,12 +53,6 @@
       "description": "LLM language level mismatch",
       "expected_behavior": "Explicitly instruct LLM in prompts to not use language level too much above the user's CEFR level",
       "passes": false
-    },
-    {
-      "category": "Unconfirmed Bug",
-      "description": "Session Settings Not Persisted",
-      "expected_behavior": "Persist primary language, target language, level, and stop word settings adjusted before the session similar to settings, so users don't need to reconfigure them for each session",
-      "passes": false
     }
   ]
 }

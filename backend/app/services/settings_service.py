@@ -35,8 +35,13 @@ class SettingsService:
             self._settings = self._load_settings()
         return self._settings
 
-    def update_settings(self, new_settings: UserSettings) -> UserSettings:
-        self._settings = new_settings
+    def update_settings(self, new_settings: dict) -> UserSettings:
+        current_settings = self.get_settings()
+        # Merge new settings with existing ones
+        updated_data = current_settings.model_dump()
+        updated_data.update(new_settings)
+        
+        self._settings = UserSettings(**updated_data)
         self._save_settings()
         return self._settings
 
