@@ -4,6 +4,7 @@ import re
 from openai import AsyncOpenAI
 from app.schemas.session import SessionAnalysis
 from app.core.config import settings
+from app.core.topics import get_topic_for_level
 
 from app.services.settings_service import settings_service
 
@@ -37,18 +38,21 @@ class LLMService:
         text = re.sub(r'\s+', ' ', text).strip()
         return text
 
-    async def generate_greeting(self, target_language: str, proficiency_level: str) -> str:
+    async def generate_greeting(self, target_language: str, proficiency_level: str, primary_language: str = "English") -> str:
         """Generate an LLM-powered greeting that considers language and proficiency."""
         client, model = self._get_client()
         
-        system_prompt = f"""You are a helpful language learning assistant for {target_language} at {proficiency_level} level.
+        # Get a predefined topic for the proficiency level
+        topic = get_topic_for_level(proficiency_level)
+        
+        system_prompt = f"""You are a helpful language learning assistant for {target_language} at {proficiency_level} level. Your name is Luna.
         
 Generate a friendly greeting that:
 1. Welcomes the user warmly
-2. Suggests a random conversation topic appropriate for their level
+2. Suggests the following conversation topic: "{topic}"
 3. Asks an opening question to start the practice
 
-Keep your response appropriate for a {proficiency_level} learner.
+Keep your response appropriate for a {proficiency_level} learner. Keep the greeting short and to the point.
 
 CRITICAL: You MUST respond EXCLUSIVELY in {target_language}. All parts of your response (greeting, topic suggestion, and question) must be in {target_language}. Keep the greeting concise (2-3 sentences).
 
@@ -59,7 +63,7 @@ DO NOT use any markdown formatting such as bold (**text**), italics (*text*), or
                 model=model,
                 messages=[
                     {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": f"Generate a greeting to start the practice session in {target_language}."}
+                    {"role": "user", "content": f"Generate a greeting to start the practice session in {target_language} about the topic: {topic}"}
                 ]
             )
             content = response.choices[0].message.content
@@ -77,7 +81,7 @@ DO NOT use any markdown formatting such as bold (**text**), italics (*text*), or
 
 Adjust your language complexity to match their proficiency.
 
-Keep your responses concise and natural. Encourage the user to speak more.
+Keep your responses concise (2-3 sentences max) and natural (as if talking to a friend). Encourage the user to speak more.
 CRITICAL: You MUST respond EXCLUSIVELY in {target_language}. Do not use any other language.
 
 DO NOT use any markdown formatting such as bold (**text**), italics (*text*), or lists. Return only pure text sentences."""
@@ -95,38 +99,24 @@ DO NOT use any markdown formatting such as bold (**text**), italics (*text*), or
         except Exception as e:
             raise LLMError(message=f"Failed to get LLM response: {str(e)}")
 
-    async def generate_summary(self, history: List[Dict[str, str]]) -> str:
+    async def analyze_grammar(self, history: List[Dict[str, str]], primary_language: str = "English") -> SessionAnalysis:
         client, model = self._get_client()
-        messages = [{"role": "system", "content": "Summarize the following conversation in 2-3 sentences."}]
-        # Convert history dicts to string for summary context
-        conversation_text = "\n".join([f"{h['role']}: {h['content']}" for h in history])
-        messages.append({"role": "user", "content": conversation_text})
-
-        try:
-            response = await client.chat.completions.create(
-                model=model,
-                messages=messages
-            )
-            return response.choices[0].message.content
-        except Exception as e:
-            raise LLMError(message=f"Summary generation failed: {str(e)}")
-
-    async def analyze_grammar(self, history: List[Dict[str, str]]) -> SessionAnalysis:
-        client, model = self._get_client()
-        prompt = """
+        prompt = f"""
         Analyze the user's grammar and vocabulary in the following conversation.
+        Provide your analysis and feedback in {primary_language}.
         Return a JSON object with the following structure:
-        {
-            "summary": "Overall summary of performance",
+        {{
+            "summary": "Overall summary of performance in {primary_language}",
             "feedback": [
-                {
+                {{
                     "original_sentence": "User's exact original sentence with error",
                     "corrected_sentence": "Corrected user sentence",
-                    "explanation": "Brief explanation of the error"
-                }
+                    "explanation": "Brief explanation of the error in {primary_language}"
+                }}
             ]
-        }
+        }}
         Only include feedback for sentences that actually have errors or could be improved naturally.
+        Make sure all explanations are in {primary_language}.
         """
         
         conversation_text = "\n".join([f"{h['role']}: {h['content']}" for h in history])

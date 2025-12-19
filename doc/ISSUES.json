@@ -37,15 +37,9 @@
       "passes": false
     },
     {
-      "category": "UX",
-      "description": "Improve random topic choosing at session start",
-      "expected_behavior": "Using code to randomly select a topic from a predefined list of topics instead of having LLM generate a random topic",
-      "passes": false
-    },
-        {
-      "category": "LLM Service",
-      "description": "Improve analysis & feedback language",
-      "expected_behavior": "In the analysis & feedback prompt, we should format in the primary language of the user to provide a useful summary in the user's primary language",
+      "category": "Backend Bug",
+      "description": "Session manager is injecting prompts directly during wrap up",
+      "expected_behavior": "Wrap up prompt should be handled by llm service, not session manager",
       "passes": false
     }
   ]

@@ -29,7 +29,8 @@ class SessionManager:
             # Generate LLM greeting based on user settings
             greeting = await llm_service.generate_greeting(
                 settings.target_language,
-                settings.proficiency_level
+                settings.proficiency_level,
+                settings.primary_language
             )
             
             # Synthesize audio for the greeting
@@ -144,7 +145,7 @@ class SessionManager:
             raise SessionNotFoundError(session_id)
         
         session["is_active"] = False
-        analysis = await llm_service.analyze_grammar(session["history"])
+        analysis = await llm_service.analyze_grammar(session["history"], session["settings"].primary_language)
         
         # Save session to history for persistence
         history_service.save_session(

@@ -64,7 +64,7 @@ async def test_create_session(session_manager, mock_llm_service, mock_tts_servic
     assert response.turns[0].role == "assistant"
     
     # Verify service calls
-    mock_llm_service.generate_greeting.assert_called_once_with("Spanish", "A1")
+    mock_llm_service.generate_greeting.assert_called_once_with("Spanish", "A1", "English")
     mock_tts_service.synthesize.assert_called_once_with(
         "Hola, amigo", 
         target_language="Spanish",
@@ -159,7 +159,7 @@ async def test_end_session(session_manager, mock_history_service, mock_llm_servi
     analysis = await session_manager.end_session(session_id)
     
     assert analysis is not None
-    mock_llm_service.analyze_grammar.assert_called_once()
+    mock_llm_service.analyze_grammar.assert_called_once_with(session_manager.sessions[session_id]["history"], "English")
     mock_history_service.save_session.assert_called_once()
     mock_cleanup_session_files.assert_called_once_with(session_id)
     
