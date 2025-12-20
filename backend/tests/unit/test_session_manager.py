@@ -159,7 +159,11 @@ async def test_end_session(session_manager, mock_history_service, mock_llm_servi
     analysis = await session_manager.end_session(session_id)
     
     assert analysis is not None
-    mock_llm_service.analyze_grammar.assert_called_once_with(session_manager.sessions[session_id]["history"], "English")
+    mock_llm_service.analyze_grammar.assert_called_once_with(
+        session_manager.sessions[session_id]["history"], 
+        "English", 
+        "Spanish"
+    )
     mock_history_service.save_session.assert_called_once()
     mock_cleanup_session_files.assert_called_once_with(session_id)
     

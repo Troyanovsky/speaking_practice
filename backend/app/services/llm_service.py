@@ -99,24 +99,29 @@ DO NOT use any markdown formatting such as bold (**text**), italics (*text*), or
         except Exception as e:
             raise LLMError(message=f"Failed to get LLM response: {str(e)}")
 
-    async def analyze_grammar(self, history: List[Dict[str, str]], primary_language: str = "English") -> SessionAnalysis:
+    async def analyze_grammar(self, history: List[Dict[str, str]], primary_language: str = "English", target_language: str = "Spanish") -> SessionAnalysis:
         client, model = self._get_client()
         prompt = f"""
-        Analyze the user's grammar and vocabulary in the following conversation.
-        Provide your analysis and feedback in {primary_language}.
+        Analyze the user's grammar and vocabulary in the following conversation where they are practicing {target_language}.
+        
+        IMPORTANT LANGUAGE REQUIREMENTS:
+        - The "summary" field MUST be in {primary_language}
+        - The "explanation" field in each feedback item MUST be in {primary_language}
+        - The "original_sentence" and "corrected_sentence" fields MUST be in {target_language} (the language being learned)
+        
         Return a JSON object with the following structure:
         {{
             "summary": "Overall summary of performance in {primary_language}",
             "feedback": [
                 {{
-                    "original_sentence": "User's exact original sentence with error",
-                    "corrected_sentence": "Corrected user sentence",
+                    "original_sentence": "User's exact original sentence with error (in {target_language})",
+                    "corrected_sentence": "Corrected user sentence (in {target_language})",
                     "explanation": "Brief explanation of the error in {primary_language}"
                 }}
             ]
         }}
         Only include feedback for sentences that actually have errors or could be improved naturally.
-        Make sure all explanations are in {primary_language}.
+        Focus on user messages (role: "user") when analyzing grammar.
         """
         
         conversation_text = "\n".join([f"{h['role']}: {h['content']}" for h in history])

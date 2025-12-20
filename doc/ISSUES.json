@@ -47,12 +47,6 @@
       "description": "Add TTS speed setting for user preferences",
       "expected_behavior": "Add a new user setting to control TTS speech speed (0.5-2.0 range, default 1.0). This is especially useful for beginners who may need slower speech. The Kokoro library already supports speed parameter - need to expose it in settings UI and pass it through to the TTS service.",
       "passes": false
-    },
-    {
-      "category": "Backend Bug",
-      "description": "analyze_grammar function language confusion",
-      "expected_behavior": "The analyze_grammar function in llm_service.py should ensure original and corrected sentences are in the target language the user is learning, while summary and explanations should be in the user's primary language. Current implementation may mix languages or provide explanations in the wrong language.",
-      "passes": false
     }
   ]
 }

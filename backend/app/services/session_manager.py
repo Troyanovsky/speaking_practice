@@ -145,7 +145,11 @@ class SessionManager:
             raise SessionNotFoundError(session_id)
         
         session["is_active"] = False
-        analysis = await llm_service.analyze_grammar(session["history"], session["settings"].primary_language)
+        analysis = await llm_service.analyze_grammar(
+            session["history"], 
+            session["settings"].primary_language,
+            session["settings"].target_language
+        )
         
         # Save session to history for persistence
         history_service.save_session(
