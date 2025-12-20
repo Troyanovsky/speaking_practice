@@ -41,7 +41,46 @@ class ASRService:
             else:
                 # NeMo for Windows and Linux
                 output = self.model.transcribe([audio_path])
-                return output[0].text
+                
+                # Handle NeMo's actual output format: tuple of lists
+                # Based on investigation, NeMo returns: (["transcription"], ["transcription"])
+                if isinstance(output, tuple) and len(output) > 0:
+                    # First element is typically a list with the transcription
+                    first_element = output[0]
+                    if isinstance(first_element, list) and len(first_element) > 0:
+                        transcription = first_element[0]
+                        if isinstance(transcription, str):
+                            return transcription
+                    
+                    # Fallback: check if first element is directly a string
+                    if isinstance(first_element, str):
+                        return first_element
+                    
+                    # Handle tuple with Hypothesis objects
+                    if hasattr(first_element, 'text'):
+                        return first_element.text
+                
+                # Fallback for other possible formats
+                elif isinstance(output, list) and len(output) > 0:
+                    first_item = output[0]
+                    
+                    # Handle list of strings
+                    if isinstance(first_item, str):
+                        return first_item
+                    # Handle list with text as first element
+                    elif isinstance(first_item, list) and len(first_item) > 0 and isinstance(first_item[0], str):
+                        return first_item[0]
+                    # Handle Hypothesis objects
+                    elif hasattr(first_item, 'text'):
+                        return first_item.text
+                    # Handle dictionary format
+                    elif isinstance(first_item, dict):
+                        if 'text' in first_item:
+                            return first_item['text']
+                        elif 'transcription' in first_item:
+                            return first_item['transcription']
+                
+                raise ASRError(message=f"NeMo returned unexpected output: {type(output)}, content: {str(output)[:200]}")
         except Exception as e:
             raise ASRError(message=f"Transcription failed: {str(e)}")
 

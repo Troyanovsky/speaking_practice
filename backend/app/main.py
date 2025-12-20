@@ -46,6 +46,9 @@ async def general_exception_handler(request: Request, exc: Exception):
         },
     )
 
+# Global reference to the cleanup task
+cleanup_task = None
+
 @app.on_event("startup")
 async def startup_event():
     print("Starting up... Loading AI models.")
@@ -54,21 +57,37 @@ async def startup_event():
     print("AI models loaded.")
     
     # Start session cleanup background task
-    asyncio.create_task(session_cleanup_task())
+    global cleanup_task
+    cleanup_task = asyncio.create_task(session_cleanup_task())
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    print("Shutting down... cancelling background tasks.")
+    global cleanup_task
+    if cleanup_task and not cleanup_task.done():
+        cleanup_task.cancel()
+        try:
+            await cleanup_task
+        except asyncio.CancelledError:
+            print("Cleanup task cancelled successfully.")
 
 async def session_cleanup_task():
     """Background task to clean up expired sessions every 10 minutes"""
-    while True:
-        try:
-            # Clean up sessions older than 1 hour (3600 seconds)
-            removed_count = session_manager.cleanup_expired_sessions(max_age_seconds=3600)
-            if removed_count > 0:
-                print(f"Cleaned up {removed_count} expired sessions.")
-        except Exception as e:
-            print(f"Error in session cleanup task: {e}")
-        
-        # Wait for 10 minutes
-        await asyncio.sleep(600)
+    try:
+        while True:
+            try:
+                # Clean up sessions older than 1 hour (3600 seconds)
+                removed_count = session_manager.cleanup_expired_sessions(max_age_seconds=3600)
+                if removed_count > 0:
+                    print(f"Cleaned up {removed_count} expired sessions.")
+            except Exception as e:
+                print(f"Error in session cleanup task: {e}")
+            
+            # Wait for 10 minutes
+            await asyncio.sleep(600)
+    except asyncio.CancelledError:
+        print("Session cleanup task received cancellation signal.")
+        raise
 
 # CORS
 app.add_middleware(

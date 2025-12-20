@@ -8,7 +8,7 @@ from app.services.tts_service import tts_service
 from app.services.history_service import history_service
 from app.core.audio import cleanup_session_files
 
-from app.core.exceptions import SessionNotFoundError, SessionError
+from app.core.exceptions import SessionNotFoundError, SessionError, LLMError, TTSError
 
 class SessionManager:
     def __init__(self):
