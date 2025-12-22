@@ -30,6 +30,61 @@ class ASRService:
         except ImportError:
             print("ASR libraries not installed. Falling back to Mock.")
 
+    def _transcribe_mac(self, audio_path: str) -> str:
+        """Transcribe audio using Parakeet MLX on macOS."""
+        result: Any = self.model.transcribe(audio_path)
+        return str(result.text)
+
+    def _transcribe_nemo(self, audio_path: str) -> str:
+        """Transcribe audio using NeMo on Windows/Linux."""
+        output: Any = self.model.transcribe([audio_path])
+
+        # Handle NeMo's actual output format: tuple of lists
+        # Based on investigation, NeMo returns: (["transcription"], ["transcription"])
+        if isinstance(output, tuple) and len(output) > 0:
+            # First element is typically a list with the transcription
+            first_element: Any = output[0]
+            if isinstance(first_element, list) and len(first_element) > 0:
+                transcription: Any = first_element[0]
+                if isinstance(transcription, str):
+                    return transcription
+
+            # Fallback: check if first element is directly a string
+            if isinstance(first_element, str):
+                return first_element
+
+            # Handle tuple with Hypothesis objects
+            if hasattr(first_element, "text"):
+                return str(first_element.text)
+
+        # Fallback for other possible formats
+        elif isinstance(output, list) and len(output) > 0:
+            first_item: Any = output[0]
+
+            # Handle list of strings
+            if isinstance(first_item, str):
+                return first_item
+            # Handle list with text as first element
+            elif (
+                isinstance(first_item, list)
+                and len(first_item) > 0
+                and isinstance(first_item[0], str)
+            ):
+                return first_item[0]
+            # Handle Hypothesis objects
+            elif hasattr(first_item, "text"):
+                return str(first_item.text)
+            # Handle dictionary format
+            elif isinstance(first_item, dict):
+                if "text" in first_item:
+                    return str(first_item["text"])
+                elif "transcription" in first_item:
+                    return str(first_item["transcription"])
+
+        raise ASRError(
+            message=f"NeMo returned unexpected output: {type(output)}, content: {str(output)[:200]}"
+        )
+
     async def transcribe(self, audio_path: str) -> str:
         if self.model is None:
             # For development, we might still want to return mock text instead of crashing
@@ -41,57 +96,10 @@ class ASRService:
             IS_MAC = sys.platform == "darwin"
 
             if IS_MAC:
-                result: Any = self.model.transcribe(audio_path)
-                return str(result.text)
+                return self._transcribe_mac(audio_path)
             else:
                 # NeMo for Windows and Linux
-                output: Any = self.model.transcribe([audio_path])
-
-                # Handle NeMo's actual output format: tuple of lists
-                # Based on investigation, NeMo returns: (["transcription"], ["transcription"])
-                if isinstance(output, tuple) and len(output) > 0:
-                    # First element is typically a list with the transcription
-                    first_element: Any = output[0]
-                    if isinstance(first_element, list) and len(first_element) > 0:
-                        transcription: Any = first_element[0]
-                        if isinstance(transcription, str):
-                            return transcription
-
-                    # Fallback: check if first element is directly a string
-                    if isinstance(first_element, str):
-                        return first_element
-
-                    # Handle tuple with Hypothesis objects
-                    if hasattr(first_element, "text"):
-                        return str(first_element.text)
-
-                # Fallback for other possible formats
-                elif isinstance(output, list) and len(output) > 0:
-                    first_item: Any = output[0]
-
-                    # Handle list of strings
-                    if isinstance(first_item, str):
-                        return first_item
-                    # Handle list with text as first element
-                    elif (
-                        isinstance(first_item, list)
-                        and len(first_item) > 0
-                        and isinstance(first_item[0], str)
-                    ):
-                        return first_item[0]
-                    # Handle Hypothesis objects
-                    elif hasattr(first_item, "text"):
-                        return str(first_item.text)
-                    # Handle dictionary format
-                    elif isinstance(first_item, dict):
-                        if "text" in first_item:
-                            return str(first_item["text"])
-                        elif "transcription" in first_item:
-                            return str(first_item["transcription"])
-
-                raise ASRError(
-                    message=f"NeMo returned unexpected output: {type(output)}, content: {str(output)[:200]}"
-                )
+                return self._transcribe_nemo(audio_path)
         except Exception as e:
             raise ASRError(message=f"Transcription failed: {str(e)}")
 

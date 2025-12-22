@@ -66,6 +66,89 @@ class SessionManager:
                 raise e
             raise SessionError(message=f"Failed to start session: {str(e)}")
 
+    def _check_stop_word(self, session: Dict, user_text: str) -> bool:
+        """Check if user said the stop word to end the session."""
+        stop_word = (
+            session["settings"].stop_word.lower()
+            if session["settings"].stop_word
+            else "stop session"
+        )
+        return stop_word in user_text.lower()
+
+    async def _handle_stop_word_response(
+        self, session: Dict, session_id: str, user_text: str
+    ) -> TurnResponse:
+        """Handle the response when user says stop word."""
+        # Trigger wrap-up
+        session["history"].append({"role": "user", "content": user_text})
+
+        # Generate wrap-up message
+        wrap_up_prompt = "The user has decided to stop the session. Please provide a brief, polite wrap-up message in the target language."
+        session["history"].append({"role": "system", "content": wrap_up_prompt})
+
+        ai_text = await llm_service.get_response(
+            session["history"],
+            session["settings"].target_language,
+            session["settings"].proficiency_level,
+        )
+
+        # Synthesize
+        ai_audio_url = await tts_service.synthesize(
+            ai_text,
+            target_language=session["settings"].target_language,
+            session_id=session_id,
+        )
+
+        session["is_active"] = False
+        return TurnResponse(
+            user_text=user_text,
+            ai_text=ai_text,
+            ai_audio_url=ai_audio_url,
+            is_session_ended=True,
+            is_session_ending=True,
+        )
+
+    def _check_max_turns_reached(self, session: Dict) -> bool:
+        """Check if max turns (15) has been reached and handle session ending."""
+        is_last_turn = session["turn_count"] >= 15
+
+        if is_last_turn:
+            session["history"].append(
+                {
+                    "role": "system",
+                    "content": "This is the final turn of the conversation. Please provide a natural closing message to wrap up the session in the target language.",
+                }
+            )
+            session["is_active"] = False
+
+        return is_last_turn
+
+    async def _generate_response(
+        self, session: Dict, session_id: str, user_text: str, is_last_turn: bool
+    ) -> TurnResponse:
+        """Generate AI response and synthesize audio."""
+        ai_text = await llm_service.get_response(
+            session["history"],
+            session["settings"].target_language,
+            session["settings"].proficiency_level,
+        )
+        session["history"].append({"role": "assistant", "content": ai_text})
+
+        # Synthesize Audio
+        ai_audio_url = await tts_service.synthesize(
+            ai_text,
+            target_language=session["settings"].target_language,
+            session_id=session_id,
+        )
+
+        return TurnResponse(
+            user_text=user_text,
+            ai_text=ai_text,
+            ai_audio_url=ai_audio_url,
+            is_session_ended=not session["is_active"],
+            is_session_ending=is_last_turn,
+        )
+
     async def process_turn(self, session_id: str, audio_file_path: str) -> TurnResponse:
         session = self.sessions.get(session_id)
         if not session:
@@ -80,84 +163,19 @@ class SessionManager:
         # 1. Transcribe
         user_text = await asr_service.transcribe(audio_file_path)
 
-        # Check for stop word
-        stop_word = (
-            session["settings"].stop_word.lower()
-            if session["settings"].stop_word
-            else "stop session"
-        )
-        if stop_word in user_text.lower():
-            # Trigger wrap-up
-            session["history"].append({"role": "user", "content": user_text})
+        # 2. Check for stop word
+        if self._check_stop_word(session, user_text):
+            return await self._handle_stop_word_response(session, session_id, user_text)
 
-            # Generate wrap-up message
-            wrap_up_prompt = "The user has decided to stop the session. Please provide a brief, polite wrap-up message in the target language."
-            # Append a system instruction temporarily or just append to history as a system note?
-            # Actually, we can just append a system message to history for the LLM to see,
-            # or better, just pass it as a user message context override?
-            # Let's append a specific system instruction to the history for this turn
-            session["history"].append({"role": "system", "content": wrap_up_prompt})
-
-            ai_text = await llm_service.get_response(
-                session["history"],
-                session["settings"].target_language,
-                session["settings"].proficiency_level,
-            )
-
-            # Synthesize
-            ai_audio_url = await tts_service.synthesize(
-                ai_text,
-                target_language=session["settings"].target_language,
-                session_id=session_id,
-            )
-
-            session["is_active"] = False
-            return TurnResponse(
-                user_text=user_text,
-                ai_text=ai_text,
-                ai_audio_url=ai_audio_url,
-                is_session_ended=True,
-                is_session_ending=True,
-            )
-
-        # Update history
+        # 3. Update history and turn count
         session["history"].append({"role": "user", "content": user_text})
         session["turn_count"] += 1
 
-        # 2. Get LLM Response with user settings
-        # Check if max turns reached to inject wrap-up prompt
-        is_last_turn = session["turn_count"] >= 15
+        # 4. Check if max turns reached
+        is_last_turn = self._check_max_turns_reached(session)
 
-        if is_last_turn:
-            session["history"].append(
-                {
-                    "role": "system",
-                    "content": "This is the final turn of the conversation. Please provide a natural closing message to wrap up the session in the target language.",
-                }
-            )
-            session["is_active"] = False
-
-        ai_text = await llm_service.get_response(
-            session["history"],
-            session["settings"].target_language,
-            session["settings"].proficiency_level,
-        )
-        session["history"].append({"role": "assistant", "content": ai_text})
-
-        # 3. Synthesize Audio
-        ai_audio_url = await tts_service.synthesize(
-            ai_text,
-            target_language=session["settings"].target_language,
-            session_id=session_id,
-        )
-
-        return TurnResponse(
-            user_text=user_text,
-            ai_text=ai_text,
-            ai_audio_url=ai_audio_url,
-            is_session_ended=not session["is_active"],
-            is_session_ending=is_last_turn,
-        )
+        # 5. Generate response and synthesize
+        return await self._generate_response(session, session_id, user_text, is_last_turn)
 
     async def end_session(self, session_id: str) -> SessionAnalysis:
         session = self.sessions.get(session_id)
