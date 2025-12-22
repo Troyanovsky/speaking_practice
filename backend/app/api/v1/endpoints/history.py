@@ -1,3 +1,5 @@
+"""Session history management endpoints."""
+
 from fastapi import APIRouter, HTTPException
 
 from app.schemas.history import HistoryListResponse, SessionHistoryDetail

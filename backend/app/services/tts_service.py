@@ -6,6 +6,7 @@ from typing import Optional
 import soundfile as sf
 
 from app.core.config import settings
+from app.core.exceptions import TTSError
 
 # Mapping of frontend languages to Kokoro lang_code and voice
 LANGUAGE_CONFIG = {
@@ -15,8 +16,6 @@ LANGUAGE_CONFIG = {
     "Italian": {"lang_code": "i", "voice": "if_sara"},
     "Portuguese": {"lang_code": "p", "voice": "pf_dora"},
 }
-
-from app.core.exceptions import TTSError
 
 
 class TTSService:

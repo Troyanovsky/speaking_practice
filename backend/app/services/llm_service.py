@@ -4,7 +4,6 @@ from typing import Dict, List
 
 from openai import AsyncOpenAI
 
-from app.core.config import settings
 from app.core.exceptions import LLMError
 from app.core.topics import get_topic_for_level
 from app.schemas.session import SessionAnalysis

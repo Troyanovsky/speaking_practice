@@ -1,4 +1,3 @@
-import os
 import sys
 
 from app.core.exceptions import ASRError

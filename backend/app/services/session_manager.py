@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from app.core.audio import cleanup_session_files
 from app.core.exceptions import LLMError, SessionError, SessionNotFoundError, TTSError

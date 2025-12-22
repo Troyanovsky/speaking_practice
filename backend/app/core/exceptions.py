@@ -1,9 +1,13 @@
-from typing import Any, Dict, Optional
+"""Custom exception classes for the application."""
 
-from fastapi import HTTPException, status
+from typing import Any, Optional
+
+from fastapi import status
 
 
 class AppException(Exception):
+    """Base exception class for application errors."""
+
     def __init__(
         self,
         status_code: int,

@@ -1,3 +1,5 @@
+"""Audio processing utilities for file validation, conversion, and cleanup."""
+
 import io
 import os
 import re
@@ -79,8 +81,8 @@ def save_upload_file(upload_file: BinaryIO, destination: str) -> str:
             with open(destination, "wb") as buffer:
                 buffer.write(upload_file.read())
             return destination
-        except:
-            raise e
+        except OSError as fallback_error:
+            raise e from fallback_error
 
 
 def cleanup_session_files(session_id: str):
