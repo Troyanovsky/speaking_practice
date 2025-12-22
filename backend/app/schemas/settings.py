@@ -18,7 +18,7 @@ class UserSettings(BaseModel):
 
     @field_validator("primary_language")
     @classmethod
-    def validate_primary_language(cls, v):
+    def validate_primary_language(cls, v: str) -> str:
         supported_languages = list(LANGUAGE_CONFIG.keys())
         if v not in supported_languages:
             raise ValueError(
@@ -28,7 +28,7 @@ class UserSettings(BaseModel):
 
     @field_validator("target_language")
     @classmethod
-    def validate_target_language(cls, v):
+    def validate_target_language(cls, v: str) -> str:
         supported_languages = list(LANGUAGE_CONFIG.keys())
         if v not in supported_languages:
             raise ValueError(

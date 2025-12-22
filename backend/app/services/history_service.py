@@ -11,7 +11,7 @@ from app.schemas.session import Feedback, Turn
 class HistoryService:
     """Service for persisting and retrieving session history."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.history_file = os.path.join(settings.DATA_DIR, "session_history.json")
         self._history: Optional[List[Dict[str, Any]]] = None
 
@@ -22,12 +22,13 @@ class HistoryService:
 
         try:
             with open(self.history_file, "r") as f:
-                return json.load(f)
+                data: Any = json.load(f)
+                return List[Dict[str, Any]](data)
         except Exception as e:
             print(f"Error loading history: {e}")
             return []
 
-    def _save_history(self):
+    def _save_history(self) -> None:
         """Persist history to disk."""
         if self._history is not None:
             try:

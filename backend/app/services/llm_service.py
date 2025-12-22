@@ -1,8 +1,13 @@
 import json
 import re
-from typing import Dict, List
+from typing import Any, Dict, List, Tuple
 
 from openai import AsyncOpenAI
+from openai.types.chat import (
+    ChatCompletionAssistantMessageParam,
+    ChatCompletionSystemMessageParam,
+    ChatCompletionUserMessageParam,
+)
 
 from app.core.exceptions import LLMError
 from app.core.topics import get_topic_for_level
@@ -11,16 +16,16 @@ from app.services.settings_service import settings_service
 
 
 class LLMService:
-    def __init__(self):
+    def __init__(self) -> None:
         # Client is now created dynamically per request to support setting changes
         pass
 
-    def _get_client(self):
+    def _get_client(self) -> Tuple[AsyncOpenAI, str]:
         user_settings = settings_service.get_settings()
         client = AsyncOpenAI(
             api_key=user_settings.llm_api_key, base_url=user_settings.llm_base_url
         )
-        return client, user_settings.llm_model
+        return client, user_settings.llm_model or "gpt-4o"
 
     def _clean_text(self, text: str) -> str:
         """Remove markdown formatting characters and normalize whitespace."""
@@ -66,15 +71,15 @@ DO NOT use any markdown formatting such as bold (**text**), italics (*text*), or
             response = await client.chat.completions.create(
                 model=model,
                 messages=[
-                    {"role": "system", "content": system_prompt},
-                    {
-                        "role": "user",
-                        "content": f"Generate a greeting to start the practice session in {target_language} about the topic: {topic}",
-                    },
+                    ChatCompletionSystemMessageParam(role="system", content=system_prompt),
+                    ChatCompletionUserMessageParam(
+                        role="user",
+                        content=f"Generate a greeting to start the practice session in {target_language} about the topic: {topic}",
+                    ),
                 ],
             )
             content = response.choices[0].message.content
-            return self._clean_text(content)
+            return self._clean_text(content or "")
         except Exception as e:
             raise LLMError(message=f"Greeting generation failed: {str(e)}")
 
@@ -96,15 +101,28 @@ CRITICAL: You MUST respond EXCLUSIVELY in {target_language}. Do not use any othe
 
 DO NOT use any markdown formatting such as bold (**text**), italics (*text*), or lists. Return only pure text sentences."""
 
-        messages = [{"role": "system", "content": system_prompt}]
-        messages.extend(history)
+        messages: List[
+            ChatCompletionSystemMessageParam
+            | ChatCompletionUserMessageParam
+            | ChatCompletionAssistantMessageParam
+        ] = [ChatCompletionSystemMessageParam(role="system", content=system_prompt)]
+        messages.extend(
+            [
+                (
+                    ChatCompletionUserMessageParam(role="user", content=msg["content"])
+                    if msg["role"] == "user"
+                    else ChatCompletionAssistantMessageParam(role="assistant", content=msg["content"])
+                )
+                for msg in history
+            ]
+        )
 
         try:
             response = await client.chat.completions.create(
                 model=model, messages=messages
             )
             content = response.choices[0].message.content
-            return self._clean_text(content)
+            return self._clean_text(content or "")
         except Exception as e:
             raise LLMError(message=f"Failed to get LLM response: {str(e)}")
 
@@ -149,7 +167,7 @@ DO NOT use any markdown formatting such as bold (**text**), italics (*text*), or
                 ],
                 response_format={"type": "json_object"},
             )
-            data = json.loads(response.choices[0].message.content)
+            data = json.loads(response.choices[0].message.content or "{}")
             return SessionAnalysis(**data)
         except Exception as e:
             raise LLMError(message=f"Analysis failure: {str(e)}")

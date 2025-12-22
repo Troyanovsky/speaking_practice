@@ -12,6 +12,7 @@ BACKEND_APP_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 class Settings(BaseSettings):
     """Application settings with environment variable support."""
+
     PROJECT_NAME: str = "Speaking Practice App"
     API_V1_STR: str = "/api/v1"
 

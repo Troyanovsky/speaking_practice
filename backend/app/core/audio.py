@@ -34,7 +34,7 @@ def sanitize_filename(filename: str | None) -> str:
     return filename
 
 
-def validate_audio_extension(filename: str | None):
+def validate_audio_extension(filename: str | None) -> None:
     """
     Validates that the filename has an allowed audio extension.
     """
@@ -85,7 +85,7 @@ def save_upload_file(upload_file: BinaryIO, destination: str) -> str:
             raise e from fallback_error
 
 
-def cleanup_session_files(session_id: str):
+def cleanup_session_files(session_id: str) -> None:
     """
     Deletes all uploaded and generated audio files associated with a session.
     """

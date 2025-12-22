@@ -18,7 +18,7 @@ from app.services.tts_service import tts_service
 
 
 class SessionManager:
-    def __init__(self):
+    def __init__(self) -> None:
         self.sessions: Dict[str, Dict] = {}
 
     async def create_session(self, settings: SessionCreate) -> SessionResponse:

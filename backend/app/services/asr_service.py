@@ -1,13 +1,14 @@
 import sys
+from typing import Any, Optional
 
 from app.core.exceptions import ASRError
 
 
 class ASRService:
-    def __init__(self):
-        self.model = None
+    def __init__(self) -> None:
+        self.model: Optional[Any] = None
 
-    def load_model(self):
+    def load_model(self) -> None:
         # Platform-specific imports handling
         IS_MAC = sys.platform == "darwin"
 
@@ -40,19 +41,19 @@ class ASRService:
             IS_MAC = sys.platform == "darwin"
 
             if IS_MAC:
-                result = self.model.transcribe(audio_path)
-                return result.text
+                result: Any = self.model.transcribe(audio_path)
+                return str(result.text)
             else:
                 # NeMo for Windows and Linux
-                output = self.model.transcribe([audio_path])
+                output: Any = self.model.transcribe([audio_path])
 
                 # Handle NeMo's actual output format: tuple of lists
                 # Based on investigation, NeMo returns: (["transcription"], ["transcription"])
                 if isinstance(output, tuple) and len(output) > 0:
                     # First element is typically a list with the transcription
-                    first_element = output[0]
+                    first_element: Any = output[0]
                     if isinstance(first_element, list) and len(first_element) > 0:
-                        transcription = first_element[0]
+                        transcription: Any = first_element[0]
                         if isinstance(transcription, str):
                             return transcription
 
@@ -62,11 +63,11 @@ class ASRService:
 
                     # Handle tuple with Hypothesis objects
                     if hasattr(first_element, "text"):
-                        return first_element.text
+                        return str(first_element.text)
 
                 # Fallback for other possible formats
                 elif isinstance(output, list) and len(output) > 0:
-                    first_item = output[0]
+                    first_item: Any = output[0]
 
                     # Handle list of strings
                     if isinstance(first_item, str):
@@ -80,13 +81,13 @@ class ASRService:
                         return first_item[0]
                     # Handle Hypothesis objects
                     elif hasattr(first_item, "text"):
-                        return first_item.text
+                        return str(first_item.text)
                     # Handle dictionary format
                     elif isinstance(first_item, dict):
                         if "text" in first_item:
-                            return first_item["text"]
+                            return str(first_item["text"])
                         elif "transcription" in first_item:
-                            return first_item["transcription"]
+                            return str(first_item["transcription"])
 
                 raise ASRError(
                     message=f"NeMo returned unexpected output: {type(output)}, content: {str(output)[:200]}"

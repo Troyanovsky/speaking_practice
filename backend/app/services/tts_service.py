@@ -1,7 +1,7 @@
 import gc
 import os
 import uuid
-from typing import Optional
+from typing import Any, Optional
 
 import soundfile as sf
 
@@ -19,11 +19,11 @@ LANGUAGE_CONFIG = {
 
 
 class TTSService:
-    def __init__(self):
-        self.pipeline_object = None
-        self.current_lang_code = None
+    def __init__(self) -> None:
+        self.pipeline_object: Optional[Any] = None
+        self.current_lang_code: Optional[str] = None
 
-    def load_model(self, lang_code: str = "a"):
+    def load_model(self, lang_code: str = "a") -> None:
         """
         Loads the Kokoro KPipeline for the specified lang_code.
         If a pipeline is already loaded for a different language, it clears it first.

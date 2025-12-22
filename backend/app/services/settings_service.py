@@ -1,13 +1,13 @@
 import json
 import os
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from app.core.config import settings as app_settings
 from app.schemas.settings import UserSettings
 
 
 class SettingsService:
-    def __init__(self):
+    def __init__(self) -> None:
         self.settings_file = os.path.join(
             app_settings.AUDIO_UPLOAD_DIR, "..", "user_settings.json"
         )
@@ -39,7 +39,7 @@ class SettingsService:
             self._settings = self._load_settings()
         return self._settings
 
-    def update_settings(self, new_settings: dict) -> UserSettings:
+    def update_settings(self, new_settings: Dict[str, Any]) -> UserSettings:
         current_settings = self.get_settings()
         # Merge new settings with existing ones
         updated_data = current_settings.model_dump()
@@ -49,7 +49,7 @@ class SettingsService:
         self._save_settings()
         return self._settings
 
-    def _save_settings(self):
+    def _save_settings(self) -> None:
         if self._settings:
             try:
                 with open(self.settings_file, "w") as f:

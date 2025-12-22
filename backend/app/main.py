@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+from typing import Any
 
 import uvicorn
 from fastapi import FastAPI, Request
@@ -26,7 +27,7 @@ app = FastAPI(title=settings.PROJECT_NAME)
 
 
 @app.exception_handler(AppException)
-async def app_exception_handler(request: Request, exc: AppException):
+async def app_exception_handler(request: Request, exc: AppException) -> JSONResponse:
     logger.error(
         f"AppException: {exc.error_code} - {exc.message} - Detail: {exc.detail}"
     )
@@ -41,7 +42,7 @@ async def app_exception_handler(request: Request, exc: AppException):
 
 
 @app.exception_handler(Exception)
-async def general_exception_handler(request: Request, exc: Exception):
+async def general_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     logger.exception("Unhandled exception occurred")
     return JSONResponse(
         status_code=500,
@@ -58,7 +59,7 @@ cleanup_task = None
 
 
 @app.on_event("startup")
-async def startup_event():
+async def startup_event() -> None:
     print("Starting up... Loading AI models.")
     asr_service.load_model()
     tts_service.load_model()
@@ -70,7 +71,7 @@ async def startup_event():
 
 
 @app.on_event("shutdown")
-async def shutdown_event():
+async def shutdown_event() -> None:
     print("Shutting down... cancelling background tasks.")
     global cleanup_task
     if cleanup_task and not cleanup_task.done():
@@ -81,7 +82,7 @@ async def shutdown_event():
             print("Cleanup task cancelled successfully.")
 
 
-async def session_cleanup_task():
+async def session_cleanup_task() -> None:
     """Background task to clean up expired sessions every 10 minutes"""
     try:
         while True:
@@ -122,10 +123,10 @@ app.mount("/static", StaticFiles(directory=settings.AUDIO_OUTPUT_DIR), name="sta
 
 
 @app.get("/")
-def read_root():
+def read_root() -> dict[str, str]:
     return {"message": "Welcome to Speaking Practice App API"}
 
 
-def main():
+def main() -> None:
     """Main entry point for the dev command"""
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

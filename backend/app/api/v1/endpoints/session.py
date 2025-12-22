@@ -22,7 +22,7 @@ DEFAULT_AUDIO_FILE = File(...)
 
 
 @router.post("/start", response_model=SessionResponse)
-async def start_session(session_create: SessionCreate):
+async def start_session(session_create: SessionCreate) -> SessionResponse:
     """Start a new speaking practice session."""
     # Persist session settings as user defaults
     settings_service.update_settings(
@@ -38,7 +38,7 @@ async def start_session(session_create: SessionCreate):
 
 
 @router.post("/{session_id}/turn", response_model=TurnResponse)
-async def process_turn(session_id: str, audio: UploadFile = DEFAULT_AUDIO_FILE):
+async def process_turn(session_id: str, audio: UploadFile = DEFAULT_AUDIO_FILE) -> TurnResponse:
     """Process an audio turn in a speaking practice session."""
     # Validate and sanitize
     validate_audio_extension(audio.filename)
@@ -53,12 +53,12 @@ async def process_turn(session_id: str, audio: UploadFile = DEFAULT_AUDIO_FILE):
 
 
 @router.post("/{session_id}/stop", response_model=TurnResponse)
-async def stop_session(session_id: str):
+async def stop_session(session_id: str) -> TurnResponse:
     """Stop a speaking practice session with wrap-up response."""
     return await session_manager.stop_session(session_id)
 
 
 @router.post("/{session_id}/end", response_model=SessionAnalysis)
-async def end_session(session_id: str):
+async def end_session(session_id: str) -> SessionAnalysis:
     """End a session and generate final analysis."""
     return await session_manager.end_session(session_id)

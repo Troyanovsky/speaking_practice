@@ -9,12 +9,12 @@ router = APIRouter()
 
 
 @router.get("/", response_model=UserSettings)
-async def get_settings():
+async def get_settings() -> UserSettings:
     """Get current user settings."""
     return settings_service.get_settings()
 
 
 @router.post("/", response_model=UserSettings)
-async def update_settings(settings: UserSettings):
+async def update_settings(settings: UserSettings) -> UserSettings:
     """Update user settings."""
-    return settings_service.update_settings(settings)
+    return settings_service.update_settings(settings.model_dump())
