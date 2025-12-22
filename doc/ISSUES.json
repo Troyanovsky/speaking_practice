@@ -49,30 +49,6 @@
       "passes": false
     },
     {
-      "category": "Code Quality",
-      "description": "Fix Code Formatting Issues (Phase 1)",
-      "expected_behavior": "Run 'make format-fix' to resolve Black and isort formatting issues across 17 files. This fixes line length, spacing, quote consistency, and import sorting issues automatically.",
-      "passes": true
-    },
-    {
-      "category": "Code Quality",
-      "description": "Fix Critical Linting Issues (Phase 2)",
-      "expected_behavior": "Manually fix critical flake8 violations: (1) Replace bare 'except:' clause in core/audio.py:78 with specific exception handling, (2) Add missing docstrings to all public functions and classes, (3) Remove unused imports (F401 errors), (4) Fix module-level imports not at top of files.",
-      "passes": true
-    },
-    {
-      "category": "Code Quality",
-      "description": "Add Type Annotations (Phase 3)",
-      "expected_behavior": "Add return type annotations to 32 functions missing them (main.py, endpoints, services). Fix 6 type mismatch errors in mypy. Ensure all functions have proper type hints for better type safety and IDE support.",
-      "passes": true
-    },
-    {
-      "category": "Code Quality",
-      "description": "Refactor Large Functions (Phase 4)",
-      "expected_behavior": "Break down functions exceeding 50-line limit: (1) Refactor session_manager.py:process_turn (83 lines) by extracting stop word handling, max turns logic, and response generation into separate methods, (2) Refactor asr_service.py:transcribe (58 lines) by extracting platform-specific implementations into separate methods.",
-      "passes": true
-    },
-    {
       "category": "Deprecation",
       "description": "FastAPI on_event Deprecation Warning",
       "expected_behavior": "Replace deprecated @app.on_event('startup') and @app.on_event('shutdown') decorators in main.py with modern lifespan event handlers using context managers for better FastAPI compatibility.",
