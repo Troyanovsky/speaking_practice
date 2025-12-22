@@ -22,9 +22,8 @@ TOPICS_BY_LEVEL: Dict[str, List[str]] = {
         "Discussion of weekend activities",
         "Simple shopping interactions",
         "Discussion of transportation methods",
-        "Description of activities done at home"
+        "Description of activities done at home",
     ],
-
     "A2": [
         "Planning a weekend or short trip",
         "Discussion of jobs or fields of study",
@@ -45,9 +44,8 @@ TOPICS_BY_LEVEL: Dict[str, List[str]] = {
         "Discussion of celebrations and birthdays",
         "Explanation of rules for a simple game",
         "Discussion of transportation and travel problems",
-        "Discussion of likes and preferences in detail"
+        "Discussion of likes and preferences in detail",
     ],
-
     "B1": [
         "Description of significant personal experiences",
         "Discussion of challenges and problem-solving experiences",
@@ -68,9 +66,8 @@ TOPICS_BY_LEVEL: Dict[str, List[str]] = {
         "Discussion of current news topics",
         "Comparison of urban and rural lifestyles",
         "Discussion of money and happiness",
-        "Discussion of friendships and relationships"
+        "Discussion of friendships and relationships",
     ],
-
     "B2": [
         "Debate on the influence of social media on society",
         "Analysis of the impact of technology on work and communication",
@@ -91,9 +88,8 @@ TOPICS_BY_LEVEL: Dict[str, List[str]] = {
         "Discussion of success and personal fulfillment",
         "Analysis of cultural stereotypes",
         "Discussion of immigration and multicultural societies",
-        "Evaluation of long-term technological consequences"
+        "Evaluation of long-term technological consequences",
     ],
-
     "C1": [
         "In-depth analysis of social and political issues",
         "Discussion of abstract concepts such as identity and freedom",
@@ -114,9 +110,8 @@ TOPICS_BY_LEVEL: Dict[str, List[str]] = {
         "Analysis of social movements and societal impact",
         "Debate on privacy in the digital age",
         "Discussion of philosophical perspectives on happiness and meaning",
-        "Evaluation of long-term societal trends"
+        "Evaluation of long-term societal trends",
     ],
-
     "C2": [
         "Advanced academic and theoretical discourse",
         "Analysis of abstract philosophical frameworks",
@@ -137,12 +132,14 @@ TOPICS_BY_LEVEL: Dict[str, List[str]] = {
         "Debate on global governance and world order",
         "Discussion of the philosophy of science",
         "Analysis of the nature of reality and existence",
-        "Spontaneous, nuanced argumentation"
-    ]
+        "Spontaneous, nuanced argumentation",
+    ],
 }
+
 
 def get_topic_for_level(level: str) -> str:
     """Get a random topic appropriate for the specified proficiency level."""
     import random
+
     topics = TOPICS_BY_LEVEL.get(level, TOPICS_BY_LEVEL["B1"])
     return random.choice(topics)

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
-from app.services.history_service import history_service
+
 from app.schemas.history import HistoryListResponse, SessionHistoryDetail
+from app.services.history_service import history_service
 
 router = APIRouter()
 

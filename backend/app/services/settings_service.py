@@ -1,12 +1,16 @@
 import json
 import os
 from typing import Optional
-from app.schemas.settings import UserSettings
+
 from app.core.config import settings as app_settings
+from app.schemas.settings import UserSettings
+
 
 class SettingsService:
     def __init__(self):
-        self.settings_file = os.path.join(app_settings.AUDIO_UPLOAD_DIR, "..", "user_settings.json")
+        self.settings_file = os.path.join(
+            app_settings.AUDIO_UPLOAD_DIR, "..", "user_settings.json"
+        )
         self.settings_file = os.path.abspath(self.settings_file)
         self._settings: Optional[UserSettings] = None
 
@@ -15,9 +19,9 @@ class SettingsService:
             return UserSettings(
                 llm_base_url=app_settings.LLM_BASE_URL,
                 llm_api_key=app_settings.LLM_API_KEY,
-                llm_model=app_settings.LLM_MODEL
+                llm_model=app_settings.LLM_MODEL,
             )
-        
+
         try:
             with open(self.settings_file, "r") as f:
                 data = json.load(f)
@@ -27,7 +31,7 @@ class SettingsService:
             return UserSettings(
                 llm_base_url=app_settings.LLM_BASE_URL,
                 llm_api_key=app_settings.LLM_API_KEY,
-                llm_model=app_settings.LLM_MODEL
+                llm_model=app_settings.LLM_MODEL,
             )
 
     def get_settings(self) -> UserSettings:
@@ -40,7 +44,7 @@ class SettingsService:
         # Merge new settings with existing ones
         updated_data = current_settings.model_dump()
         updated_data.update(new_settings)
-        
+
         self._settings = UserSettings(**updated_data)
         self._save_settings()
         return self._settings
@@ -52,5 +56,6 @@ class SettingsService:
                     json.dump(self._settings.model_dump(), f, indent=4)
             except Exception as e:
                 print(f"Error saving settings: {e}")
+
 
 settings_service = SettingsService()

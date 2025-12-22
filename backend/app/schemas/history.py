@@ -1,11 +1,14 @@
-from pydantic import BaseModel
-from typing import List, Optional
 from datetime import datetime
+from typing import List, Optional
+
+from pydantic import BaseModel
+
 from app.schemas.session import Feedback, Turn
 
 
 class SessionHistoryItem(BaseModel):
     """Summary item for history list view."""
+
     session_id: str
     timestamp: str  # ISO format
     primary_language: str
@@ -17,6 +20,7 @@ class SessionHistoryItem(BaseModel):
 
 class SessionHistoryDetail(BaseModel):
     """Full session detail for History detail view."""
+
     session_id: str
     timestamp: str
     primary_language: str
@@ -30,5 +34,6 @@ class SessionHistoryDetail(BaseModel):
 
 class HistoryListResponse(BaseModel):
     """Response for GET /history/."""
+
     sessions: List[SessionHistoryItem]
     total: int

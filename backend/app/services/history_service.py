@@ -1,15 +1,16 @@
 import json
 import os
 from datetime import datetime
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
+
 from app.core.config import settings
-from app.schemas.history import SessionHistoryItem, SessionHistoryDetail
-from app.schemas.session import Turn, Feedback
+from app.schemas.history import SessionHistoryDetail, SessionHistoryItem
+from app.schemas.session import Feedback, Turn
 
 
 class HistoryService:
     """Service for persisting and retrieving session history."""
-    
+
     def __init__(self):
         self.history_file = os.path.join(settings.DATA_DIR, "session_history.json")
         self._history: Optional[List[Dict[str, Any]]] = None
@@ -18,7 +19,7 @@ class HistoryService:
         """Load history from disk."""
         if not os.path.exists(self.history_file):
             return []
-        
+
         try:
             with open(self.history_file, "r") as f:
                 return json.load(f)
@@ -49,11 +50,11 @@ class HistoryService:
         settings_data: Dict[str, Any],
         history: List[Dict[str, str]],
         summary: str,
-        feedback: List[Dict[str, str]]
+        feedback: List[Dict[str, str]],
     ) -> None:
         """Save a completed session to history."""
         sessions = self._get_history()
-        
+
         session_record = {
             "session_id": session_id,
             "timestamp": datetime.now().isoformat(),
@@ -63,9 +64,9 @@ class HistoryService:
             "turn_count": len([h for h in history if h.get("role") == "user"]),
             "turns": history,
             "summary": summary,
-            "feedback": feedback
+            "feedback": feedback,
         }
-        
+
         sessions.append(session_record)
         self._history = sessions
         self._save_history()
@@ -73,14 +74,12 @@ class HistoryService:
     def get_all_sessions(self) -> List[SessionHistoryItem]:
         """Get list of all sessions for history list view."""
         sessions = self._get_history()
-        
+
         # Sort by timestamp, newest first
         sorted_sessions = sorted(
-            sessions,
-            key=lambda x: x.get("timestamp", ""),
-            reverse=True
+            sessions, key=lambda x: x.get("timestamp", ""), reverse=True
         )
-        
+
         return [
             SessionHistoryItem(
                 session_id=s["session_id"],
@@ -89,7 +88,11 @@ class HistoryService:
                 target_language=s["target_language"],
                 proficiency_level=s["proficiency_level"],
                 turn_count=s["turn_count"],
-                summary=s.get("summary", "")[:100] + "..." if len(s.get("summary", "")) > 100 else s.get("summary", "")
+                summary=(
+                    s.get("summary", "")[:100] + "..."
+                    if len(s.get("summary", "")) > 100
+                    else s.get("summary", "")
+                ),
             )
             for s in sorted_sessions
         ]
@@ -97,7 +100,7 @@ class HistoryService:
     def get_session_by_id(self, session_id: str) -> Optional[SessionHistoryDetail]:
         """Get full session detail by ID."""
         sessions = self._get_history()
-        
+
         for s in sessions:
             if s["session_id"] == session_id:
                 return SessionHistoryDetail(
@@ -107,20 +110,23 @@ class HistoryService:
                     target_language=s["target_language"],
                     proficiency_level=s["proficiency_level"],
                     turn_count=s["turn_count"],
-                    turns=[Turn(role=t["role"], text=t["content"]) for t in s.get("turns", [])],
+                    turns=[
+                        Turn(role=t["role"], text=t["content"])
+                        for t in s.get("turns", [])
+                    ],
                     summary=s.get("summary", ""),
-                    feedback=[Feedback(**f) for f in s.get("feedback", [])]
+                    feedback=[Feedback(**f) for f in s.get("feedback", [])],
                 )
-        
+
         return None
 
     def delete_session(self, session_id: str) -> bool:
         """Delete a session from history."""
         sessions = self._get_history()
         original_length = len(sessions)
-        
+
         self._history = [s for s in sessions if s["session_id"] != session_id]
-        
+
         if len(self._history) < original_length:
             self._save_history()
             return True
