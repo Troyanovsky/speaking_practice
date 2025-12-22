@@ -34,7 +34,7 @@
       "category": "UX",
       "description": "Add a delete all history button",
       "expected_behavior": "Add a button to clear all chat history at once",
-      "passes": false
+      "passes": true
     },
     {
       "category": "Backend Bug",
@@ -64,6 +64,18 @@
       "category": "Warning",
       "description": "PyTorch RNN Dropout Configuration Warning",
       "expected_behavior": "Fix RNN dropout configuration warning by either setting num_layers > 1 when using dropout=0.2, or set dropout=0 when num_layers=1 to prevent misleading warning in torch/nn/modules/rnn.py.",
+      "passes": false
+    },
+    {
+      "category": "Audio Bug",
+      "description": "Audio playback cuts off first word or so",
+      "expected_behavior": "Fix audio playback issue where the first word is cut off, possibly related to 206 partial content responses for audio requests. Investigate if this is a frontend buffering issue or backend HTTP range request handling problem.",
+      "passes": false
+    },
+    {
+      "category": "UX Bug",
+      "description": "Session doesn't transition to summary after wrap-up audio",
+      "expected_behavior": "After wrap-up audio completes playing, the session should automatically transition to the session summary screen. Currently no transition occurs and no backend error is visible. Investigate frontend state management and audio completion handling.",
       "passes": false
     }
   ]

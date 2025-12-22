@@ -33,3 +33,10 @@ async def delete_session(session_id: str) -> Dict[str, str]:
     if not deleted:
         raise HTTPException(status_code=404, detail="Session not found")
     return {"message": "Session deleted successfully"}
+
+
+@router.delete("/")
+async def delete_all_history() -> Dict[str, str]:
+    """Delete all session history."""
+    deleted_count = history_service.delete_all_sessions()
+    return {"message": f"Deleted {deleted_count} sessions successfully"}

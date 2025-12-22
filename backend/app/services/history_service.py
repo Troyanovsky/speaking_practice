@@ -142,5 +142,16 @@ class HistoryService:
             return True
         return False
 
+    def delete_all_sessions(self) -> int:
+        """Delete all sessions from history."""
+        sessions = self._get_history()
+        count = len(sessions)
+
+        if count > 0:
+            self._history = []
+            self._save_history()
+
+        return count
+
 
 history_service = HistoryService()
