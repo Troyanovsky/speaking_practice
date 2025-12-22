@@ -77,5 +77,9 @@ export const historyApi = {
     deleteSession: async (sessionId: string) => {
         const response = await api.delete(`/history/${sessionId}`);
         return response.data;
+    },
+    deleteAllHistory: async () => {
+        const response = await api.delete('/history/');
+        return response.data;
     }
 };

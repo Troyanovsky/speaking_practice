@@ -54,6 +54,18 @@ const HistoryView: React.FC = () => {
         }
     };
 
+    const handleDeleteAllHistory = async () => {
+        if (!confirm("Are you sure you want to delete all conversation history? This action cannot be undone.")) return;
+        try {
+            await historyApi.deleteAllHistory();
+            setSessions([]);
+            setSelectedSession(null);
+        } catch (err) {
+            console.error("Failed to delete all history:", err);
+            setError("Failed to delete all history");
+        }
+    };
+
     const formatDate = (timestamp: string) => {
         return new Date(timestamp).toLocaleString();
     };
@@ -68,7 +80,17 @@ const HistoryView: React.FC = () => {
 
     return (
         <div className="max-w-4xl mx-auto p-4">
-            <h2 className="text-2xl font-bold mb-6 text-gray-800">Conversation History</h2>
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-800">Conversation History</h2>
+                {sessions.length > 0 && (
+                    <button
+                        onClick={handleDeleteAllHistory}
+                        className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-sm font-medium"
+                    >
+                        Delete All History
+                    </button>
+                )}
+            </div>
 
             {error && (
                 <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
