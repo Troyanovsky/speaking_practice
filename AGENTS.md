@@ -14,6 +14,7 @@ cd backend
 uv sync --dev   # Install all dependencies including dev extras
 uv run dev      # Development server with auto-reload (http://localhost:8000)
 uv run pytest  # Run backend tests with verbose output
+make check-comprehensive  # Run all linting and type checking (see LINTING.md)
 ```
 
 ### Frontend
@@ -47,6 +48,15 @@ npm test                               # Run all tests
 npm test -- --ui                       # Run tests with Vitest UI
 npm test -- --coverage                 # Run tests with coverage report
 ```
+
+## Code Quality & Linting
+
+The backend uses comprehensive linting tools to maintain code quality:
+- **Function length limit**: 50 lines
+- **File length limit**: 300 lines
+- **Tools**: Black, isort, flake8, mypy, pre-commit hooks
+
+See `backend/LINTING.md` for detailed configuration and usage.
 
 ## Architecture Overview
 
