@@ -63,10 +63,11 @@ npm test -- --coverage                 # Run tests with coverage report
   - `tts_service.py` - Kokoro text-to-speech with dynamic language support
   - `history_service.py` - Session history persistence (JSON)
   - `settings_service.py` - User settings persistence (JSON)
-- **Core**: `backend/app/core/` - Configuration, exceptions, and audio utilities
+- **Core**: `backend/app/core/` - Configuration, exceptions, audio utilities, and conversation topics
   - `config.py` - Application settings and environment variables
   - `exceptions.py` - Custom exception classes (AppException, LLMError, etc.)
   - `audio.py` - Audio processing utilities
+  - `topics.py` - Predefined conversation topics organized by CEFR proficiency level
 - **Schemas**: `backend/app/schemas/` - Pydantic models for data validation
   - `session.py` - Session-related data models
   - `settings.py` - Settings configuration models
@@ -78,13 +79,14 @@ npm test -- --coverage                 # Run tests with coverage report
 ### Frontend Structure (React + TypeScript)
 - **Main App**: `frontend/src/App.tsx` - Application routing and layout
 - **Features**: `frontend/src/features/` - Feature-based modules
-  - `practice/` - Core practice session logic and UI
+  - `practice/` - Core practice session logic and UI with waveform visualization and turn counter
   - `history/` - Conversation history management and display
   - `settings/` - User preferences and configuration
 - **Components**: Reusable UI components
   - `AudioRecorder.tsx` - Audio recording functionality
   - `Notification.tsx` - Toast notification display
   - `NotificationContext.tsx` - Notification state management
+  - `SessionReview.tsx` - Enhanced session review with conversation history and detailed feedback
 - **API Client**: `frontend/src/api/client.ts` - Centralized API calls with error handling
 - **Types**: `frontend/src/types/` - TypeScript type definitions
 - **Testing**: `frontend/src/test/` - Test setup and utilities
@@ -94,12 +96,12 @@ npm test -- --coverage                 # Run tests with coverage report
 ### Session Flow
 1. Frontend calls `POST /api/v1/session/start` to create session with session ID
 2. User records audio and sends via `POST /api/v1/session/{id}/turn`
-3. Backend orchestrates: ASR → LLM → TTS → returns response with session-based audio filenames
+3. Backend orchestrates: ASR → LLM → TTS → returns response with session-based audio filenames. LLM service now uses predefined topics based on CEFR level for more contextual conversations.
 4. Session can end via multiple mechanisms:
    - **Stop Word**: User says stop word during normal turn → generates wrap-up response with `is_session_ending=True`
    - **Max Turns**: Reaches 15 turns → generates natural closing message with `is_session_ending=True`
    - **Stop Button**: User clicks stop button → calls `POST /api/v1/session/{id}/stop` → generates wrap-up response with `is_session_ending=True`
-5. Frontend waits for wrap-up audio to complete playing, then calls `POST /api/v1/session/{id}/end` to generate analysis
+5. Frontend waits for wrap-up audio to complete playing, then calls `POST /api/v1/session/{id}/end` to generate analysis. Session review includes conversation history and detailed feedback with turn-by-turn corrections.
 6. Background cleanup task removes expired sessions and associated audio files every 10 minutes
 
 ### Audio Handling
@@ -113,7 +115,7 @@ npm test -- --coverage                 # Run tests with coverage report
 #### Session Management
 - `POST /api/v1/session/start` - Create new session with language settings
 - `POST /api/v1/session/{id}/turn` - Process audio turn with ASR → LLM → TTS pipeline
-- `POST /api/v1/session/{id}/stop` - Manually stop session with wrap-up response
+- `POST /api/v1/session/{id}/stop` - Manually stop session with polite wrap-up response
 - `POST /api/v1/session/{id}/end` - Generate final analysis (called after wrap-up completes)
 
 #### Session Ending Behavior
@@ -131,7 +133,7 @@ npm test -- --coverage                 # Run tests with coverage report
 
 The backend uses platform-specific ASR libraries with automatic fallback:
 - **macOS**: `parakeet-mlx` (Apple Silicon optimized)
-- **Windows/Linux**: `nemo_toolkit[asr]`
+- **Windows/Linux**: `nemo_toolkit[asr]` with `cuda-python` dependency for non-mac systems
 - Both fall back to mock implementations if installation fails
 - `hf-transfer>=0.1.9` dependency for improved model downloading
 
@@ -164,21 +166,16 @@ VITE_API_URL=http://localhost:8000/api/v1
 
 ## Development Notes
 
-- **Issue Tracking**: New features and issues are recorded in `doc/ISSUES.json`. An issue should only be marked as `passes` when it is fully implemented and tested (auto or by human)
-- **Testing**: Comprehensive test suites with pytest (backend) and Vitest (frontend). Always add tests for new features/modifications
-- **Session Management**:
-  - Active session state is maintained in-memory (`session_manager.py`) - not persistent across restarts
-  - Session-based audio file cleanup prevents disk space issues
-  - Background task automatically cleans up expired sessions (1 hour timeout)
-- **Data Persistence**:
-  - Completed session history is persisted to JSON (`history_service.py`) - survives server restarts
-  - User settings are stored in JSON files with absolute path resolution
-- **Security**:
-  - Filename sanitization and extension validation for audio uploads
-  - CORS is configured to allow all origins in development (should be restricted in production)
-  - Structured error handling prevents information leakage
-- **Architecture**: Clean separation between API layer and business logic with dependency injection
-- **Frontend**: React 19 with TypeScript, Tailwind CSS, and optimistic UI updates for better user experience
-- **Session Ending UX**: Improved flow with `is_session_ending` state to prevent abrupt summary display. Voice input disabled during session ending, user sees "Session Ending" message while waiting for final audio to play
-- **TTS Language Support**: Dynamic language configuration supporting English, Spanish, French, Italian, and Portuguese
-- **LLM Integration**: Dynamic client creation allows runtime configuration changes for different LLM providers
+- **Issue Tracking**: `doc/ISSUES.json` - Mark as `passes` only when fully implemented and tested
+- **Testing**: pytest (backend) and Vitest (frontend). Add tests for all new features
+- **Session Management**: In-memory state, session-based audio cleanup, 1-hour expiration with background cleanup
+- **Data Persistence**: JSON-based storage for history (survives restarts) and user settings (persisted as defaults)
+- **Security**: Audio upload validation, filename sanitization, structured error handling, CORS (dev: all origins)
+- **Architecture**: Clean API/service separation with dependency injection
+- **Frontend**: React 19 + TypeScript + Tailwind, optimistic UI updates
+- **Key Features**:
+  - Session ending UX with `is_session_ending` state and wrap-up flow
+  - Enhanced session review with conversation history and turn-by-turn feedback
+  - Active session UI with waveform visualization and turn counter
+  - Dynamic TTS language support (EN, ES, FR, IT, PT)
+  - LLM integration with predefined CEFR topics, enhanced grammar analysis, and markdown stripping
