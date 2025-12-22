@@ -51,7 +51,7 @@ class LLMService:
         topic = get_topic_for_level(proficiency_level)
 
         system_prompt = f"""You are a helpful language learning assistant for {target_language} at {proficiency_level} level. Your name is Luna.
-        
+
 Generate a friendly greeting that:
 1. Welcomes the user warmly
 2. Suggests the following conversation topic: "{topic}"
@@ -118,12 +118,12 @@ DO NOT use any markdown formatting such as bold (**text**), italics (*text*), or
         client, model = self._get_client()
         prompt = f"""
         Analyze the user's grammar and vocabulary in the following conversation where they are practicing {target_language}.
-        
+
         IMPORTANT LANGUAGE REQUIREMENTS:
         - The "summary" field MUST be in {primary_language}
         - The "explanation" field in each feedback item MUST be in {primary_language}
         - The "original_sentence" and "corrected_sentence" fields MUST be in {target_language} (the language being learned)
-        
+
         Return a JSON object with the following structure:
         {{
             "summary": "Overall summary of performance in {primary_language}",

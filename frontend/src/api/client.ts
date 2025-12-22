@@ -79,4 +79,3 @@ export const historyApi = {
         return response.data;
     }
 };
-

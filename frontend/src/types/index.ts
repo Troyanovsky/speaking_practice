@@ -72,4 +72,3 @@ export interface HistoryListResponse {
     sessions: SessionHistoryItem[];
     total: number;
 }
-

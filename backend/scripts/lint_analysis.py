@@ -7,7 +7,7 @@ Shows function lengths, file lengths, and other metrics.
 import ast
 import os
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 
 class FunctionLengthVisitor(ast.NodeVisitor):
@@ -20,38 +20,52 @@ class FunctionLengthVisitor(ast.NodeVisitor):
 
     def visit_FunctionDef(self, node):
         start_line = node.lineno
-        end_line = node.end_lineno if hasattr(node, 'end_lineno') and node.end_lineno else start_line
+        end_line = (
+            node.end_lineno
+            if hasattr(node, "end_lineno") and node.end_lineno
+            else start_line
+        )
         length = end_line - start_line + 1
 
         if length > self.max_length:
-            self.violations.append({
-                'file': self.current_file,
-                'function': node.name,
-                'line': start_line,
-                'length': length,
-                'type': 'FunctionDef'
-            })
+            self.violations.append(
+                {
+                    "file": self.current_file,
+                    "function": node.name,
+                    "line": start_line,
+                    "length": length,
+                    "type": "FunctionDef",
+                }
+            )
 
         self.generic_visit(node)
 
     def visit_AsyncFunctionDef(self, node):
         start_line = node.lineno
-        end_line = node.end_lineno if hasattr(node, 'end_lineno') and node.end_lineno else start_line
+        end_line = (
+            node.end_lineno
+            if hasattr(node, "end_lineno") and node.end_lineno
+            else start_line
+        )
         length = end_line - start_line + 1
 
         if length > self.max_length:
-            self.violations.append({
-                'file': self.current_file,
-                'function': node.name,
-                'line': start_line,
-                'length': length,
-                'type': 'AsyncFunctionDef'
-            })
+            self.violations.append(
+                {
+                    "file": self.current_file,
+                    "function": node.name,
+                    "line": start_line,
+                    "length": length,
+                    "type": "AsyncFunctionDef",
+                }
+            )
 
         self.generic_visit(node)
 
 
-def analyze_file_lengths(app_dir: Path, max_file_length: int = 300) -> List[Dict[str, Any]]:
+def analyze_file_lengths(
+    app_dir: Path, max_file_length: int = 300
+) -> List[Dict[str, Any]]:
     """Analyze file lengths."""
     violations = []
 
@@ -59,21 +73,25 @@ def analyze_file_lengths(app_dir: Path, max_file_length: int = 300) -> List[Dict
         if py_file.name.startswith("__") and py_file.stat().st_size < 100:
             continue
 
-        with open(py_file, 'r', encoding='utf-8') as f:
+        with open(py_file, "r", encoding="utf-8") as f:
             lines = f.readlines()
             line_count = len(lines)
 
             if line_count > max_file_length:
-                violations.append({
-                    'file': str(py_file.relative_to(app_dir)),
-                    'length': line_count,
-                    'max_allowed': max_file_length
-                })
+                violations.append(
+                    {
+                        "file": str(py_file.relative_to(app_dir)),
+                        "length": line_count,
+                        "max_allowed": max_file_length,
+                    }
+                )
 
     return violations
 
 
-def analyze_function_lengths(app_dir: Path, max_function_length: int = 50) -> List[Dict[str, Any]]:
+def analyze_function_lengths(
+    app_dir: Path, max_function_length: int = 50
+) -> List[Dict[str, Any]]:
     """Analyze function lengths using AST."""
     visitor = FunctionLengthVisitor(max_function_length)
     violations = []
@@ -83,7 +101,7 @@ def analyze_function_lengths(app_dir: Path, max_function_length: int = 50) -> Li
             continue
 
         try:
-            with open(py_file, 'r', encoding='utf-8') as f:
+            with open(py_file, "r", encoding="utf-8") as f:
                 content = f.read()
                 if not content.strip():
                     continue
@@ -117,7 +135,9 @@ def main():
 
     if file_violations:
         for violation in file_violations:
-            print(f"❌ {violation['file']}: {violation['length']} lines (max: {violation['max_allowed']})")
+            print(
+                f"❌ {violation['file']}: {violation['length']} lines (max: {violation['max_allowed']})"
+            )
     else:
         print("✅ All files within length limits")
 
@@ -128,8 +148,10 @@ def main():
 
     if func_violations:
         for violation in func_violations:
-            func_type = "async" if violation['type'] == 'AsyncFunctionDef' else "sync"
-            print(f"❌ {violation['file']}:{violation['line']} - {violation['function']} ({func_type}): {violation['length']} lines")
+            func_type = "async" if violation["type"] == "AsyncFunctionDef" else "sync"
+            print(
+                f"❌ {violation['file']}:{violation['line']} - {violation['function']} ({func_type}): {violation['length']} lines"
+            )
     else:
         print("✅ All functions within length limits")
 

@@ -102,7 +102,7 @@ const PracticeView: React.FC = () => {
             if (response.ai_audio_url) {
                 const audio = new Audio(response.ai_audio_url.startsWith('http') ? response.ai_audio_url : `http://localhost:8000${response.ai_audio_url}`);
                 await audio.play();
-                
+
                 // Only fetch analysis after audio finishes if session ended
                 if (response.is_session_ended) {
                     try {
@@ -145,21 +145,21 @@ const PracticeView: React.FC = () => {
 
     const stopSession = async () => {
         if (!sessionId) return;
-        
+
         setIsStoppingSession(true);
         try {
             const response = await sessionApi.stopSession(sessionId);
             setIsSessionEnding(true);
             setIsActive(false);
-            
+
             // Add AI response to turns
             setTurns(prev => [...prev, { role: 'system', text: response.ai_text, audio_url: response.ai_audio_url }]);
-            
+
             // Play audio
             if (response.ai_audio_url) {
                 const audio = new Audio(response.ai_audio_url.startsWith('http') ? response.ai_audio_url : `http://localhost:8000${response.ai_audio_url}`);
                 await audio.play();
-                
+
                 // Only fetch analysis after audio finishes
                 try {
                     const analysisData = await sessionApi.endSession(sessionId);
@@ -287,7 +287,7 @@ const PracticeView: React.FC = () => {
                             <h2 className="text-2xl font-semibold text-gray-800 mb-2">Session in Progress</h2>
                             <p className="text-gray-600">Focus on your conversation with the AI</p>
                         </div>
-                        
+
                         {/* Waveform visualization */}
                         <div className="w-full max-w-md">
                             <div className="flex items-center justify-center space-x-1">
@@ -304,7 +304,7 @@ const PracticeView: React.FC = () => {
                                 ))}
                             </div>
                         </div>
-                        
+
                         {/* Turn counter */}
                         <div className="text-center">
                             <div className="text-3xl font-bold text-blue-600">
@@ -312,7 +312,7 @@ const PracticeView: React.FC = () => {
                             </div>
                             <p className="text-sm text-gray-500 mt-1">Turns completed</p>
                         </div>
-                        
+
                         {/* Stop Session Button */}
                         <button
                             onClick={stopSession}
@@ -324,7 +324,7 @@ const PracticeView: React.FC = () => {
                             </svg>
                             <span>{isStoppingSession ? "Stopping..." : "Stop Session"}</span>
                         </button>
-                        
+
                         <div className="text-center max-w-sm">
                             <p className="text-xs text-gray-400">
                                 Chat history will be available at the end of the session
@@ -340,13 +340,13 @@ const PracticeView: React.FC = () => {
                             <h2 className="text-2xl font-semibold text-gray-800 mb-2">Session Ending</h2>
                             <p className="text-gray-600">Please wait for the final response...</p>
                         </div>
-                        
+
                         <div className="animate-pulse flex space-x-2">
                             <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
                             <div className="w-3 h-3 bg-blue-600 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
                             <div className="w-3 h-3 bg-blue-600 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
                         </div>
-                        
+
                         <div className="text-center max-w-sm">
                             <p className="text-xs text-gray-400">
                                 Your session summary will appear after the response finishes
@@ -362,7 +362,7 @@ const PracticeView: React.FC = () => {
                             <h2 className="text-2xl font-semibold text-gray-800 mb-2">Session Ended</h2>
                             <p className="text-gray-600">Generating your session analysis...</p>
                         </div>
-                        
+
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                     </div>
                 )}

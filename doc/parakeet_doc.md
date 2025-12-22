@@ -1,4 +1,4 @@
-There are different parakeet libraries for ASR on windows with Nvidia GPU vs MacOS. 
+There are different parakeet libraries for ASR on windows with Nvidia GPU vs MacOS.
 
 ## Mac OS
 Use the parakeet-mlx library

@@ -137,7 +137,7 @@ speaking_practice/
     *   Adds wrap-up prompt: "The user has decided to stop the session. Please provide a brief, polite wrap-up message in the target language."
     *   Generates wrap-up response and synthesizes audio.
     *   Returns `TurnResponse` with `is_session_ended=True` and `is_session_ending=True`.
-4.  **Frontend**: 
+4.  **Frontend**:
     *   Sets `isSessionEnding=true`, disables voice input.
     *   Shows "Session Ending" UI with loading animation.
     *   Plays wrap-up audio completely.

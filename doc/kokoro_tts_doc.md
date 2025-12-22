@@ -57,7 +57,7 @@ for i, (gs, ps, audio) in enumerate(generator):
 ### Windows Installation
 To install espeak-ng on Windows:
 1. Go to [espeak-ng releases](https://github.com/espeak-ng/espeak-ng/releases)
-2. Click on **Latest release** 
+2. Click on **Latest release**
 3. Download the appropriate `*.msi` file (e.g. **espeak-ng-20191129-b702b03-x64.msi**)
 4. Run the downloaded installer
 
