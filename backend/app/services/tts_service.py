@@ -1,3 +1,12 @@
+"""Text-to-Speech (TTS) service for generating audio from text.
+
+This module provides the TTSService class which handles:
+- Dynamic language switching with Kokoro TTS models
+- Multi-language support (EN, ES, FR, IT, PT)
+- Audio file generation and management
+- Memory-efficient model loading and cleanup
+"""
+
 import gc
 import os
 import uuid
@@ -19,14 +28,22 @@ LANGUAGE_CONFIG = {
 
 
 class TTSService:
+    """Handles text-to-speech synthesis using Kokoro.
+
+    Supports dynamic language switching and memory-efficient
+    model management for multi-language audio generation.
+    """
+
     def __init__(self) -> None:
+        """Initialize the TTS service."""
         self.pipeline_object: Optional[Any] = None
         self.current_lang_code: Optional[str] = None
 
     def load_model(self, lang_code: str = "a") -> None:
-        """
-        Loads the Kokoro KPipeline for the specified lang_code.
-        If a pipeline is already loaded for a different language, it clears it first.
+        """Load the Kokoro KPipeline for the specified language.
+
+        Args:
+            lang_code: Language code for Kokoro model (default: "a" for English).
         """
         if self.pipeline_object is not None and self.current_lang_code == lang_code:
             return
@@ -56,6 +73,19 @@ class TTSService:
         target_language: str = "English",
         session_id: Optional[str] = None,
     ) -> str:
+        """Synthesize text to audio file.
+
+        Args:
+            text: Text to synthesize.
+            target_language: Language for synthesis (default: English).
+            session_id: Optional session ID for filename prefix.
+
+        Returns:
+            URL path to the generated audio file.
+
+        Raises:
+            TTSError: If synthesis fails.
+        """
         # Get config for the target language, fallback to English
         config = LANGUAGE_CONFIG.get(target_language, LANGUAGE_CONFIG["English"])
         lang_code = config["lang_code"]
@@ -81,7 +111,7 @@ class TTSService:
             )
 
             has_audio = False
-            for i, (gs, ps, audio) in enumerate(generator):
+            for _i, (_gs, _ps, audio) in enumerate(generator):
                 # Save just the first chunk for MVP or stitch them
                 sf.write(output_path, audio, 24000)
                 has_audio = True

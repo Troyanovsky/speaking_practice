@@ -1,3 +1,11 @@
+"""Automatic Speech Recognition (ASR) service for transcribing audio.
+
+This module provides the ASRService class which handles:
+- Platform-specific model loading (Parakeet MLX on macOS, NeMo on Windows/Linux)
+- Audio transcription with fallback handling
+- Graceful degradation when ASR libraries are not available
+"""
+
 import sys
 from typing import Any, Optional
 
@@ -5,10 +13,22 @@ from app.core.exceptions import ASRError
 
 
 class ASRService:
+    """Handles audio transcription using platform-specific ASR models.
+
+    Uses Parakeet MLX on macOS for Apple Silicon optimization,
+    and NeMo on Windows/Linux with CUDA support.
+    """
+
     def __init__(self) -> None:
+        """Initialize the ASR service."""
         self.model: Optional[Any] = None
 
     def load_model(self) -> None:
+        """Load the appropriate ASR model based on the platform.
+
+        Loads Parakeet MLX on macOS and NeMo on Windows/Linux.
+        Falls back to mock transcription if libraries are unavailable.
+        """
         # Platform-specific imports handling
         IS_MAC = sys.platform == "darwin"
 
@@ -86,6 +106,17 @@ class ASRService:
         )
 
     async def transcribe(self, audio_path: str) -> str:
+        """Transcribe audio file to text.
+
+        Args:
+            audio_path: Path to the audio file to transcribe.
+
+        Returns:
+            Transcribed text string.
+
+        Raises:
+            ASRError: If transcription fails.
+        """
         if self.model is None:
             # For development, we might still want to return mock text instead of crashing
             # But the issue says "strict error logging and specific error codes"

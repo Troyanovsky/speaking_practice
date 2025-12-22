@@ -1,3 +1,13 @@
+"""Session management service for the Speaking Practice App.
+
+This module provides the SessionManager class which handles:
+- Creating and managing conversation sessions
+- Processing user audio turns (ASR → LLM → TTS pipeline)
+- Session lifecycle management (start, stop, end, cleanup)
+- Session history tracking and analysis
+- Automatic cleanup of expired sessions
+"""
+
 import uuid
 from datetime import datetime, timezone
 from typing import Dict, List
@@ -18,10 +28,30 @@ from app.services.tts_service import tts_service
 
 
 class SessionManager:
+    """Manages conversation sessions and orchestrates the AI pipeline.
+
+    Handles session creation, turn processing, and lifecycle management
+    with integration to ASR, LLM, and TTS services.
+    """
+
     def __init__(self) -> None:
+        """Initialize the session manager."""
         self.sessions: Dict[str, Dict] = {}
 
     async def create_session(self, settings: SessionCreate) -> SessionResponse:
+        """Create a new conversation session.
+
+        Args:
+            settings: Session configuration including language settings.
+
+        Returns:
+            SessionResponse with session ID and initial greeting turn.
+
+        Raises:
+            SessionError: If session creation fails.
+            LLMError: If greeting generation fails.
+            TTSError: If audio synthesis fails.
+        """
         session_id = str(uuid.uuid4())
         self.sessions[session_id] = {
             "id": session_id,
@@ -150,6 +180,19 @@ class SessionManager:
         )
 
     async def process_turn(self, session_id: str, audio_file_path: str) -> TurnResponse:
+        """Process a user audio turn in the conversation.
+
+        Args:
+            session_id: The session identifier.
+            audio_file_path: Path to the uploaded audio file.
+
+        Returns:
+            TurnResponse with transcribed user text, AI response, and audio.
+
+        Raises:
+            SessionNotFoundError: If session doesn't exist.
+            SessionError: If session is inactive.
+        """
         session = self.sessions.get(session_id)
         if not session:
             raise SessionNotFoundError(session_id)
@@ -175,9 +218,22 @@ class SessionManager:
         is_last_turn = self._check_max_turns_reached(session)
 
         # 5. Generate response and synthesize
-        return await self._generate_response(session, session_id, user_text, is_last_turn)
+        return await self._generate_response(
+            session, session_id, user_text, is_last_turn
+        )
 
     async def end_session(self, session_id: str) -> SessionAnalysis:
+        """End a session and generate grammar analysis.
+
+        Args:
+            session_id: The session identifier.
+
+        Returns:
+            SessionAnalysis with grammar feedback and conversation summary.
+
+        Raises:
+            SessionNotFoundError: If session doesn't exist.
+        """
         session = self.sessions.get(session_id)
         if not session:
             raise SessionNotFoundError(session_id)
@@ -208,6 +264,18 @@ class SessionManager:
         return analysis
 
     async def stop_session(self, session_id: str) -> TurnResponse:
+        """Manually stop a session with a wrap-up message.
+
+        Args:
+            session_id: The session identifier.
+
+        Returns:
+            TurnResponse with wrap-up message and audio.
+
+        Raises:
+            SessionNotFoundError: If session doesn't exist.
+            SessionError: If session is already inactive.
+        """
         session = self.sessions.get(session_id)
         if not session:
             raise SessionNotFoundError(session_id)
@@ -244,6 +312,14 @@ class SessionManager:
         )
 
     def get_session_history(self, session_id: str) -> List[Turn]:
+        """Get the conversation history for a session.
+
+        Args:
+            session_id: The session identifier.
+
+        Returns:
+            List of turns in the conversation.
+        """
         session = self.sessions.get(session_id)
         if not session:
             return []
@@ -251,9 +327,13 @@ class SessionManager:
         return [Turn(role=h["role"], text=h["content"]) for h in session["history"]]
 
     def cleanup_expired_sessions(self, max_age_seconds: int = 3600) -> int:
-        """
-        Removes sessions that haven't been active for max_age_seconds.
-        Returns the number of sessions removed.
+        """Remove expired sessions and clean up their files.
+
+        Args:
+            max_age_seconds: Maximum age of sessions before cleanup (default: 3600).
+
+        Returns:
+            Number of sessions removed.
         """
         now = datetime.now(timezone.utc)
         expired_ids = []

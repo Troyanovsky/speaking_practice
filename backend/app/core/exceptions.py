@@ -23,6 +23,8 @@ class AppException(Exception):
 
 
 class SessionError(AppException):
+    """Exception raised for session-related errors."""
+
     def __init__(
         self, message: str = "Session error occurred", detail: Optional[Any] = None
     ):
@@ -35,6 +37,8 @@ class SessionError(AppException):
 
 
 class SessionNotFoundError(AppException):
+    """Exception raised when a session is not found."""
+
     def __init__(self, session_id: str):
         super().__init__(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -45,6 +49,8 @@ class SessionNotFoundError(AppException):
 
 
 class ASRError(AppException):
+    """Exception raised for automatic speech recognition errors."""
+
     def __init__(
         self, message: str = "Speech recognition failed", detail: Optional[Any] = None
     ):
@@ -57,6 +63,8 @@ class ASRError(AppException):
 
 
 class TTSError(AppException):
+    """Exception raised for text-to-speech synthesis errors."""
+
     def __init__(
         self, message: str = "Speech synthesis failed", detail: Optional[Any] = None
     ):
@@ -69,6 +77,8 @@ class TTSError(AppException):
 
 
 class LLMError(AppException):
+    """Exception raised for language model processing errors."""
+
     def __init__(
         self, message: str = "Language model error", detail: Optional[Any] = None
     ):
@@ -81,6 +91,8 @@ class LLMError(AppException):
 
 
 class ValidationError(AppException):
+    """Exception raised for data validation errors."""
+
     def __init__(self, message: str, detail: Optional[Any] = None):
         super().__init__(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,

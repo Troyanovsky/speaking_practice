@@ -1,7 +1,17 @@
+"""FastAPI application entry point for the Speaking Practice App.
+
+This module initializes the FastAPI application with:
+- Exception handlers for custom application exceptions
+- CORS middleware configuration
+- Startup/shutdown event handlers for model loading and cleanup
+- Background session cleanup task
+- Static file serving for audio outputs
+- API router inclusion
+"""
+
 import asyncio
 import logging
 import os
-from typing import Any
 
 import uvicorn
 from fastapi import FastAPI, Request
@@ -28,6 +38,15 @@ app = FastAPI(title=settings.PROJECT_NAME)
 
 @app.exception_handler(AppException)
 async def app_exception_handler(request: Request, exc: AppException) -> JSONResponse:
+    """Handle custom application exceptions.
+
+    Args:
+        request: The incoming HTTP request.
+        exc: The custom application exception.
+
+    Returns:
+        JSONResponse with structured error information.
+    """
     logger.error(
         f"AppException: {exc.error_code} - {exc.message} - Detail: {exc.detail}"
     )
@@ -43,6 +62,15 @@ async def app_exception_handler(request: Request, exc: AppException) -> JSONResp
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Handle unexpected exceptions.
+
+    Args:
+        request: The incoming HTTP request.
+        exc: The unexpected exception.
+
+    Returns:
+        JSONResponse with generic error information.
+    """
     logger.exception("Unhandled exception occurred")
     return JSONResponse(
         status_code=500,
@@ -60,6 +88,10 @@ cleanup_task = None
 
 @app.on_event("startup")
 async def startup_event() -> None:
+    """Initialize application on startup.
+
+    Loads AI models and starts the background session cleanup task.
+    """
     print("Starting up... Loading AI models.")
     asr_service.load_model()
     tts_service.load_model()
@@ -72,6 +104,10 @@ async def startup_event() -> None:
 
 @app.on_event("shutdown")
 async def shutdown_event() -> None:
+    """Clean up resources on shutdown.
+
+    Cancels the background session cleanup task.
+    """
     print("Shutting down... cancelling background tasks.")
     global cleanup_task
     if cleanup_task and not cleanup_task.done():
@@ -83,7 +119,11 @@ async def shutdown_event() -> None:
 
 
 async def session_cleanup_task() -> None:
-    """Background task to clean up expired sessions every 10 minutes"""
+    """Clean up expired sessions periodically.
+
+    Runs in the background, removing sessions older than 1 hour
+    every 10 minutes.
+    """
     try:
         while True:
             try:
@@ -124,9 +164,14 @@ app.mount("/static", StaticFiles(directory=settings.AUDIO_OUTPUT_DIR), name="sta
 
 @app.get("/")
 def read_root() -> dict[str, str]:
+    """Return welcome message.
+
+    Returns:
+        Dictionary with welcome message.
+    """
     return {"message": "Welcome to Speaking Practice App API"}
 
 
 def main() -> None:
-    """Main entry point for the dev command"""
+    """Start the development server."""
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

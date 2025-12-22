@@ -1,3 +1,11 @@
+"""Session history persistence and retrieval service.
+
+This module provides the HistoryService class which handles:
+- Saving completed sessions to JSON storage
+- Retrieving session lists and details
+- Managing session history lifecycle
+"""
+
 import json
 import os
 from datetime import datetime
@@ -12,6 +20,7 @@ class HistoryService:
     """Service for persisting and retrieving session history."""
 
     def __init__(self) -> None:
+        """Initialize the history service."""
         self.history_file = os.path.join(settings.DATA_DIR, "session_history.json")
         self._history: Optional[List[Dict[str, Any]]] = None
 

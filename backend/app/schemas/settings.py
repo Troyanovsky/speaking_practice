@@ -1,3 +1,11 @@
+"""Pydantic schemas for user settings and configuration.
+
+This module defines schemas for:
+- User language and proficiency settings
+- LLM API configuration
+- Settings validation with field validators
+"""
+
 from typing import Optional
 
 from pydantic import BaseModel, field_validator
@@ -6,6 +14,8 @@ from app.services.tts_service import LANGUAGE_CONFIG
 
 
 class UserSettings(BaseModel):
+    """User configuration settings for the practice app."""
+
     primary_language: str = "English"
     target_language: str = "Spanish"
     proficiency_level: str = "A1"
@@ -19,6 +29,7 @@ class UserSettings(BaseModel):
     @field_validator("primary_language")
     @classmethod
     def validate_primary_language(cls, v: str) -> str:
+        """Validate primary language is supported."""
         supported_languages = list(LANGUAGE_CONFIG.keys())
         if v not in supported_languages:
             raise ValueError(
@@ -29,6 +40,7 @@ class UserSettings(BaseModel):
     @field_validator("target_language")
     @classmethod
     def validate_target_language(cls, v: str) -> str:
+        """Validate target language is supported."""
         supported_languages = list(LANGUAGE_CONFIG.keys())
         if v not in supported_languages:
             raise ValueError(

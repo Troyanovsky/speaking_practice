@@ -1,3 +1,10 @@
+"""Pydantic schemas for session history data models.
+
+This module defines schemas for:
+- Session history list items and details
+- History API response structures
+"""
+
 from typing import List
 
 from pydantic import BaseModel

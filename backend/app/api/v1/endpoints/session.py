@@ -38,7 +38,9 @@ async def start_session(session_create: SessionCreate) -> SessionResponse:
 
 
 @router.post("/{session_id}/turn", response_model=TurnResponse)
-async def process_turn(session_id: str, audio: UploadFile = DEFAULT_AUDIO_FILE) -> TurnResponse:
+async def process_turn(
+    session_id: str, audio: UploadFile = DEFAULT_AUDIO_FILE
+) -> TurnResponse:
     """Process an audio turn in a speaking practice session."""
     # Validate and sanitize
     validate_audio_extension(audio.filename)

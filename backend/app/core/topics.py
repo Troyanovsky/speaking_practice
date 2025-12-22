@@ -1,3 +1,11 @@
+"""Predefined conversation topics organized by CEFR proficiency level.
+
+This module provides:
+- Topic collections for each CEFR level (A1-C2)
+- Random topic selection based on proficiency level
+- Contextually appropriate conversation starters
+"""
+
 from typing import Dict, List
 
 # Predefined conversation topics by proficiency level

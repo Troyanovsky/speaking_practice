@@ -1,6 +1,16 @@
+"""Large Language Model (LLM) service for AI conversations.
+
+This module provides the LLMService class which handles:
+- Dynamic OpenAI-compatible API client creation
+- Context-aware conversation responses based on proficiency level
+- Grammar analysis with bilingual feedback
+- Markdown text cleaning for audio synthesis
+- Integration with predefined CEFR topics
+"""
+
 import json
 import re
-from typing import Any, Dict, List, Tuple
+from typing import Dict, List, Tuple
 
 from openai import AsyncOpenAI
 from openai.types.chat import (
@@ -16,11 +26,23 @@ from app.services.settings_service import settings_service
 
 
 class LLMService:
+    """Handles LLM interactions for conversation practice.
+
+    Supports any OpenAI-compatible API with dynamic client creation
+    based on user settings.
+    """
+
     def __init__(self) -> None:
+        """Initialize the LLM service."""
         # Client is now created dynamically per request to support setting changes
         pass
 
     def _get_client(self) -> Tuple[AsyncOpenAI, str]:
+        """Create a dynamic OpenAI client based on current settings.
+
+        Returns:
+            Tuple of (OpenAI client, model name).
+        """
         user_settings = settings_service.get_settings()
         client = AsyncOpenAI(
             api_key=user_settings.llm_api_key, base_url=user_settings.llm_base_url
@@ -28,7 +50,14 @@ class LLMService:
         return client, user_settings.llm_model or "gpt-4o"
 
     def _clean_text(self, text: str) -> str:
-        """Remove markdown formatting characters and normalize whitespace."""
+        """Remove markdown formatting and normalize whitespace for TTS.
+
+        Args:
+            text: Text potentially containing markdown formatting.
+
+        Returns:
+            Cleaned text with markdown removed and whitespace normalized.
+        """
         # Remove code blocks and inline code (do this first)
         text = re.sub(r"`{1,3}.*?`{1,3}", "", text, flags=re.DOTALL)
         # Remove bold/italic markers
@@ -48,7 +77,19 @@ class LLMService:
         proficiency_level: str,
         primary_language: str = "English",
     ) -> str:
-        """Generate an LLM-powered greeting that considers language and proficiency."""
+        """Generate a contextual greeting for starting a practice session.
+
+        Args:
+            target_language: Language the user is learning.
+            proficiency_level: CEFR proficiency level (A1-C2).
+            primary_language: User's native language (default: English).
+
+        Returns:
+            Greeting text in the target language with topic suggestion.
+
+        Raises:
+            LLMError: If greeting generation fails.
+        """
         client, model = self._get_client()
 
         # Get a predefined topic for the proficiency level
@@ -71,7 +112,9 @@ DO NOT use any markdown formatting such as bold (**text**), italics (*text*), or
             response = await client.chat.completions.create(
                 model=model,
                 messages=[
-                    ChatCompletionSystemMessageParam(role="system", content=system_prompt),
+                    ChatCompletionSystemMessageParam(
+                        role="system", content=system_prompt
+                    ),
                     ChatCompletionUserMessageParam(
                         role="user",
                         content=f"Generate a greeting to start the practice session in {target_language} about the topic: {topic}",
@@ -89,7 +132,19 @@ DO NOT use any markdown formatting such as bold (**text**), italics (*text*), or
         target_language: str = "English",
         proficiency_level: str = "B1",
     ) -> str:
-        """Get LLM response with user context for language and proficiency."""
+        """Generate an AI response based on conversation history.
+
+        Args:
+            history: List of previous conversation turns.
+            target_language: Language the user is learning.
+            proficiency_level: CEFR proficiency level (A1-C2).
+
+        Returns:
+            AI response text in the target language.
+
+        Raises:
+            LLMError: If response generation fails.
+        """
         client, model = self._get_client()
 
         system_prompt = f"""You are a helpful language learning assistant named Luna, helping a user practice {target_language} at {proficiency_level} level.
@@ -111,7 +166,9 @@ DO NOT use any markdown formatting such as bold (**text**), italics (*text*), or
                 (
                     ChatCompletionUserMessageParam(role="user", content=msg["content"])
                     if msg["role"] == "user"
-                    else ChatCompletionAssistantMessageParam(role="assistant", content=msg["content"])
+                    else ChatCompletionAssistantMessageParam(
+                        role="assistant", content=msg["content"]
+                    )
                 )
                 for msg in history
             ]
@@ -132,6 +189,19 @@ DO NOT use any markdown formatting such as bold (**text**), italics (*text*), or
         primary_language: str = "English",
         target_language: str = "Spanish",
     ) -> SessionAnalysis:
+        """Analyze grammar and vocabulary from conversation history.
+
+        Args:
+            history: List of conversation turns.
+            primary_language: User's native language for explanations.
+            target_language: Language being learned for analysis.
+
+        Returns:
+            SessionAnalysis with summary and turn-by-turn feedback.
+
+        Raises:
+            LLMError: If analysis fails.
+        """
         client, model = self._get_client()
         prompt = f"""
         Analyze the user's grammar and vocabulary in the following conversation where they are practicing {target_language}.

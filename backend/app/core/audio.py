@@ -12,8 +12,8 @@ ALLOWED_AUDIO_EXTENSIONS = {".wav", ".mp3", ".m4a", ".ogg", ".webm", ".aac", ".f
 
 
 def sanitize_filename(filename: str | None) -> str:
-    """
-    Sanitizes a filename to prevent path traversal and other attacks.
+    """Sanitize a filename to prevent path traversal and other attacks.
+
     Preserves the extension when truncating to length limit.
     """
     if not filename:
@@ -35,9 +35,7 @@ def sanitize_filename(filename: str | None) -> str:
 
 
 def validate_audio_extension(filename: str | None) -> None:
-    """
-    Validates that the filename has an allowed audio extension.
-    """
+    """Validate that the filename has an allowed audio extension."""
     if not filename:
         raise HTTPException(status_code=400, detail="Missing filename")
 
@@ -50,8 +48,8 @@ def validate_audio_extension(filename: str | None) -> None:
 
 
 def save_upload_file(upload_file: BinaryIO, destination: str) -> str:
-    """
-    Saves and processes an uploaded audio file.
+    """Save and process an uploaded audio file.
+
     Converts to WAV, 16kHz, Mono for optimal ASR.
     """
     try:
@@ -86,9 +84,7 @@ def save_upload_file(upload_file: BinaryIO, destination: str) -> str:
 
 
 def cleanup_session_files(session_id: str) -> None:
-    """
-    Deletes all uploaded and generated audio files associated with a session.
-    """
+    """Delete all uploaded and generated audio files associated with a session."""
     from app.core.config import settings
 
     # Sanitize session_id just in case
