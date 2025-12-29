@@ -76,7 +76,7 @@
       "category": "UX Bug",
       "description": "Session doesn't transition to summary after wrap-up audio",
       "expected_behavior": "After wrap-up audio completes playing, the session should automatically transition to the session summary screen. Currently no transition occurs and no backend error is visible. Investigate frontend state management and audio completion handling.",
-      "passes": false
+      "passes": true
     }
   ]
 }

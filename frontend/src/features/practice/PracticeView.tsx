@@ -98,24 +98,18 @@ const PracticeView: React.FC = () => {
                 setIsActive(false);
             }
 
-            // Play audio
+            // Play audio (with error handling to ensure session completes even if audio fails)
             if (response.ai_audio_url) {
-                const audio = new Audio(response.ai_audio_url.startsWith('http') ? response.ai_audio_url : `http://localhost:8000${response.ai_audio_url}`);
-                await audio.play();
-
-                // Only fetch analysis after audio finishes if session ended
-                if (response.is_session_ended) {
-                    try {
-                        const analysisData = await sessionApi.endSession(sessionId);
-                        setAnalysis(analysisData);
-                        setIsSessionEnding(false);
-                    } catch (err) {
-                        console.error("Failed to fetch session analysis:", err);
-                        setIsSessionEnding(false);
-                    }
+                try {
+                    const audio = new Audio(response.ai_audio_url.startsWith('http') ? response.ai_audio_url : `http://localhost:8000${response.ai_audio_url}`);
+                    await audio.play();
+                } catch (audioError) {
+                    console.warn("Audio playback failed, continuing to analysis:", audioError);
                 }
-            } else if (response.is_session_ended) {
-                // If no audio, fetch analysis immediately
+            }
+
+            // Fetch analysis after audio playback attempt (whether audio succeeded or failed)
+            if (response.is_session_ended) {
                 try {
                     const analysisData = await sessionApi.endSession(sessionId);
                     setAnalysis(analysisData);
@@ -155,30 +149,24 @@ const PracticeView: React.FC = () => {
             // Add AI response to turns
             setTurns(prev => [...prev, { role: 'system', text: response.ai_text, audio_url: response.ai_audio_url }]);
 
-            // Play audio
+            // Play audio (with error handling to ensure session completes even if audio fails)
             if (response.ai_audio_url) {
-                const audio = new Audio(response.ai_audio_url.startsWith('http') ? response.ai_audio_url : `http://localhost:8000${response.ai_audio_url}`);
-                await audio.play();
+                try {
+                    const audio = new Audio(response.ai_audio_url.startsWith('http') ? response.ai_audio_url : `http://localhost:8000${response.ai_audio_url}`);
+                    await audio.play();
+                } catch (audioError) {
+                    console.warn("Audio playback failed, continuing to analysis:", audioError);
+                }
+            }
 
-                // Only fetch analysis after audio finishes
-                try {
-                    const analysisData = await sessionApi.endSession(sessionId);
-                    setAnalysis(analysisData);
-                    setIsSessionEnding(false);
-                } catch (err) {
-                    console.error("Failed to fetch session analysis:", err);
-                    setIsSessionEnding(false);
-                }
-            } else {
-                // If no audio, fetch analysis immediately
-                try {
-                    const analysisData = await sessionApi.endSession(sessionId);
-                    setAnalysis(analysisData);
-                    setIsSessionEnding(false);
-                } catch (err) {
-                    console.error("Failed to fetch session analysis:", err);
-                    setIsSessionEnding(false);
-                }
+            // Fetch analysis after audio playback attempt (whether audio succeeded or failed)
+            try {
+                const analysisData = await sessionApi.endSession(sessionId);
+                setAnalysis(analysisData);
+                setIsSessionEnding(false);
+            } catch (err) {
+                console.error("Failed to fetch session analysis:", err);
+                setIsSessionEnding(false);
             }
         } catch (error) {
             console.error("Failed to stop session:", error);
