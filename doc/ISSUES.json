@@ -70,7 +70,7 @@
       "category": "Audio Bug",
       "description": "Audio playback cuts off first word or so",
       "expected_behavior": "Fix audio playback issue where the first word is cut off, possibly related to 206 partial content responses for audio requests. Investigate if this is a frontend buffering issue or backend HTTP range request handling problem.",
-      "passes": false
+      "passes": true
     },
     {
       "category": "UX Bug",

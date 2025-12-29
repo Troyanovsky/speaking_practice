@@ -25,6 +25,46 @@ const PracticeView: React.FC = () => {
     const [proficiencyLevel, setProficiencyLevel] = useState('A1');
     const [stopWord, setStopWord] = useState('stop session');
 
+    // Helper function to play audio and wait for it to complete
+    const playAudioAndWait = async (audioUrl: string): Promise<void> => {
+        return new Promise((resolve) => {
+            const audio = new Audio(audioUrl);
+            let hasStarted = false;
+
+            // Wait for audio to be ready before playing (fixes first word cutoff)
+            const attemptPlay = () => {
+                if (hasStarted) return;
+                hasStarted = true;
+
+                audio.play().catch((err) => {
+                    console.warn("Audio playback failed:", err);
+                    resolve(); // Resolve anyway to not block session
+                });
+            };
+
+            // Play when enough data is loaded
+            audio.addEventListener('canplaythrough', attemptPlay, { once: true });
+
+            // Fallback: if canplaythrough doesn't fire quickly, try anyway
+            setTimeout(() => {
+                if (!hasStarted && audio.readyState >= 2) {
+                    attemptPlay();
+                }
+            }, 100);
+
+            // Wait for audio to finish playing (fixes end-of-session cutoff)
+            audio.addEventListener('ended', () => {
+                resolve();
+            }, { once: true });
+
+            // Handle errors gracefully
+            audio.addEventListener('error', (err) => {
+                console.warn("Audio error:", err);
+                resolve(); // Resolve anyway to not block session
+            }, { once: true });
+        });
+    };
+
     // Load defaults from backend settings
     useEffect(() => {
         const loadDefaults = async () => {
@@ -62,8 +102,10 @@ const PracticeView: React.FC = () => {
             if (data.turns.length > 0) {
                 const lastTurn = data.turns[data.turns.length - 1];
                 if (lastTurn.audio_url) {
-                    const audio = new Audio(lastTurn.audio_url.startsWith('http') ? lastTurn.audio_url : `http://localhost:8000${lastTurn.audio_url}`);
-                    audio.play();
+                    const audioUrl = lastTurn.audio_url.startsWith('http')
+                        ? lastTurn.audio_url
+                        : `http://localhost:8000${lastTurn.audio_url}`;
+                    playAudioAndWait(audioUrl);
                 }
             }
         } catch (error) {
@@ -98,17 +140,15 @@ const PracticeView: React.FC = () => {
                 setIsActive(false);
             }
 
-            // Play audio (with error handling to ensure session completes even if audio fails)
+            // Play audio and wait for it to complete (fixes first word and end-of-session cutoff)
             if (response.ai_audio_url) {
-                try {
-                    const audio = new Audio(response.ai_audio_url.startsWith('http') ? response.ai_audio_url : `http://localhost:8000${response.ai_audio_url}`);
-                    await audio.play();
-                } catch (audioError) {
-                    console.warn("Audio playback failed, continuing to analysis:", audioError);
-                }
+                const audioUrl = response.ai_audio_url.startsWith('http')
+                    ? response.ai_audio_url
+                    : `http://localhost:8000${response.ai_audio_url}`;
+                await playAudioAndWait(audioUrl);
             }
 
-            // Fetch analysis after audio playback attempt (whether audio succeeded or failed)
+            // Fetch analysis after audio completes (only when session has ended)
             if (response.is_session_ended) {
                 try {
                     const analysisData = await sessionApi.endSession(sessionId);
@@ -149,17 +189,15 @@ const PracticeView: React.FC = () => {
             // Add AI response to turns
             setTurns(prev => [...prev, { role: 'system', text: response.ai_text, audio_url: response.ai_audio_url }]);
 
-            // Play audio (with error handling to ensure session completes even if audio fails)
+            // Play audio and wait for it to complete (fixes first word and end-of-session cutoff)
             if (response.ai_audio_url) {
-                try {
-                    const audio = new Audio(response.ai_audio_url.startsWith('http') ? response.ai_audio_url : `http://localhost:8000${response.ai_audio_url}`);
-                    await audio.play();
-                } catch (audioError) {
-                    console.warn("Audio playback failed, continuing to analysis:", audioError);
-                }
+                const audioUrl = response.ai_audio_url.startsWith('http')
+                    ? response.ai_audio_url
+                    : `http://localhost:8000${response.ai_audio_url}`;
+                await playAudioAndWait(audioUrl);
             }
 
-            // Fetch analysis after audio playback attempt (whether audio succeeded or failed)
+            // Fetch analysis after audio completes
             try {
                 const analysisData = await sessionApi.endSession(sessionId);
                 setAnalysis(analysisData);
