@@ -24,6 +24,7 @@ const PracticeView: React.FC = () => {
 
     const [proficiencyLevel, setProficiencyLevel] = useState('A1');
     const [stopWord, setStopWord] = useState('stop session');
+    const [ttsSpeed, setTtsSpeed] = useState(1.0);
 
     // Helper function to play audio and wait for it to complete
     const playAudioAndWait = async (audioUrl: string): Promise<void> => {
@@ -74,6 +75,7 @@ const PracticeView: React.FC = () => {
                 setTargetLanguage(settings.target_language);
                 setProficiencyLevel(settings.proficiency_level);
                 setStopWord(settings.stop_word);
+                setTtsSpeed(settings.tts_speed || 1.0);
             } catch (error) {
                 console.error("Failed to load settings defaults:", error);
             }
@@ -91,7 +93,8 @@ const PracticeView: React.FC = () => {
                 primary_language: primaryLanguage,
                 target_language: targetLanguage,
                 proficiency_level: proficiencyLevel,
-                stop_word: stopWord
+                stop_word: stopWord,
+                tts_speed: ttsSpeed
             };
             const data = await sessionApi.startSession(settings);
             setSessionId(data.session_id);

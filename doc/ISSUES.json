@@ -45,8 +45,8 @@
     {
       "category": "Feature",
       "description": "Add TTS speed setting for user preferences",
-      "expected_behavior": "Add a new user setting to control TTS speech speed (0.5-2.0 range, default 1.0). This is especially useful for beginners who may need slower speech. The Kokoro library already supports speed parameter - need to expose it in settings UI and pass it through to the TTS service.",
-      "passes": false
+      "expected_behavior": "Add a new user setting to control TTS speech speed (0.5-1.5 range, default 1.0). This is especially useful for beginners who may need slower speech. The Kokoro library already supports speed parameter - need to expose it in settings UI and pass it through to the TTS service.",
+      "passes": true
     },
     {
       "category": "Deprecation",

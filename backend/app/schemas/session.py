@@ -26,6 +26,7 @@ class SessionCreate(BaseModel):
     target_language: str
     proficiency_level: str
     stop_word: Optional[str] = "stop session"
+    tts_speed: Optional[float] = None
 
 
 class SessionResponse(BaseModel):

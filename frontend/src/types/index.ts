@@ -9,6 +9,7 @@ export interface SessionCreate {
     target_language: string;
     proficiency_level: string;
     stop_word?: string;
+    tts_speed?: number;
 }
 
 export interface SessionResponse {
@@ -41,6 +42,7 @@ export interface UserSettings {
     target_language: string;
     proficiency_level: string;
     stop_word: string;
+    tts_speed?: number;
     llm_base_url?: string;
     llm_api_key?: string;
     llm_model?: string;

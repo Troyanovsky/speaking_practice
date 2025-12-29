@@ -77,3 +77,11 @@ fr: ff_siwis
 es: ef_dora
 it: if_sara
 pt-br: pf_dora
+
+### Speed
+Values > 1.0: Makes speech faster (shorter duration)
+Values < 1.0: Makes speech slower (longer duration)
+Value = 1.0: Normal speed (default)
+Value = 0: Causes division by zero error
+Recommended range: 0.5 to 2.0 for reasonable speech quality
+Extreme values: May cause unnatural speech or audio artifacts

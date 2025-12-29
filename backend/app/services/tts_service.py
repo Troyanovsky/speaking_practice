@@ -72,6 +72,7 @@ class TTSService:
         text: str,
         target_language: str = "English",
         session_id: Optional[str] = None,
+        speed: float = 1.0,
     ) -> str:
         """Synthesize text to audio file.
 
@@ -79,6 +80,8 @@ class TTSService:
             text: Text to synthesize.
             target_language: Language for synthesis (default: English).
             session_id: Optional session ID for filename prefix.
+            speed: Speech speed multiplier (default: 1.0).
+                Range: 0.5-2.0 recommended.
 
         Returns:
             URL path to the generated audio file.
@@ -105,9 +108,9 @@ class TTSService:
             filename = f"{session_id}_{uid}.wav" if session_id else f"{uid}.wav"
             output_path = os.path.join(settings.AUDIO_OUTPUT_DIR, filename)
 
-            # Generate audio
+            # Generate audio with specified speed
             generator = self.pipeline_object(
-                text, voice=voice, speed=1, split_pattern=r"\n+"
+                text, voice=voice, speed=speed, split_pattern=r"\n+"
             )
 
             has_audio = False

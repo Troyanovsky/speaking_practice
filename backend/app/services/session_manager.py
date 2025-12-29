@@ -60,6 +60,7 @@ class SessionManager:
             "turn_count": 0,
             "is_active": True,
             "last_activity": datetime.now(timezone.utc),
+            "tts_speed": settings.tts_speed if settings.tts_speed is not None else 1.0,
         }
 
         try:
@@ -164,11 +165,12 @@ class SessionManager:
         )
         session["history"].append({"role": "assistant", "content": ai_text})
 
-        # Synthesize Audio
+        # Synthesize Audio with user's preferred TTS speed
         ai_audio_url = await tts_service.synthesize(
             ai_text,
             target_language=session["settings"].target_language,
             session_id=session_id,
+            speed=session.get("tts_speed", 1.0),
         )
 
         return TurnResponse(
