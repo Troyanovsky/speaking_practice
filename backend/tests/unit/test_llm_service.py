@@ -1,17 +1,22 @@
+"""Unit tests for LLM service behavior."""
+
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from app.core.exceptions import LLMError
 from app.services.llm_service import LLMService
 
 
 @pytest.fixture
 def llm_service():
+    """Provide an LLM service instance."""
     return LLMService()
 
 
 @pytest.fixture
 def mock_openai():
+    """Mock AsyncOpenAI chat completion client."""
     with patch("app.services.llm_service.AsyncOpenAI") as mock:
         client_instance = mock.return_value
         client_instance.chat = MagicMock()
@@ -22,6 +27,7 @@ def mock_openai():
 
 @pytest.fixture
 def mock_settings():
+    """Mock settings service response for LLM config."""
     with patch("app.services.llm_service.settings_service") as mock:
         mock_settings_obj = MagicMock()
         mock_settings_obj.llm_api_key = "test-key"
@@ -33,6 +39,7 @@ def mock_settings():
 
 @pytest.mark.asyncio
 async def test_generate_greeting(llm_service, mock_openai, mock_settings):
+    """Generate greeting uses chat completions and returns content."""
     # Setup mock response
     mock_response = MagicMock()
     mock_response.choices = [MagicMock()]
@@ -50,6 +57,7 @@ async def test_generate_greeting(llm_service, mock_openai, mock_settings):
 
 @pytest.mark.asyncio
 async def test_get_response(llm_service, mock_openai, mock_settings):
+    """Get response returns assistant message content."""
     mock_response = MagicMock()
     mock_response.choices = [MagicMock()]
     mock_response.choices[0].message.content = "I am doing well."
@@ -64,6 +72,7 @@ async def test_get_response(llm_service, mock_openai, mock_settings):
 
 @pytest.mark.asyncio
 async def test_analyze_grammar(llm_service, mock_openai, mock_settings):
+    """Analyze grammar returns parsed analysis output."""
     mock_response = MagicMock()
     mock_response.choices = [MagicMock()]
     mock_response.choices[0].message.content = '{"summary": "Good", "feedback": []}'
@@ -77,11 +86,9 @@ async def test_analyze_grammar(llm_service, mock_openai, mock_settings):
     mock_openai.chat.completions.create.assert_called_once()
 
 
-from app.core.exceptions import LLMError
-
-
 @pytest.mark.asyncio
 async def test_generate_greeting_error(llm_service, mock_openai, mock_settings):
+    """Generate greeting should raise LLMError on failures."""
     # Force error
     mock_openai.chat.completions.create.side_effect = Exception("API Error")
 
@@ -91,6 +98,7 @@ async def test_generate_greeting_error(llm_service, mock_openai, mock_settings):
 
 
 def test_clean_text(llm_service):
+    """Clean text strips markdown artifacts from output."""
     dirty_text = "**Hello** *world* [link](url) `code` \n- list item\n1. First"
     expected = "Hello world link list item First"
     assert llm_service._clean_text(dirty_text) == expected

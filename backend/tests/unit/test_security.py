@@ -1,3 +1,5 @@
+"""Unit tests for audio filename sanitization and validation."""
+
 import pytest
 from fastapi import HTTPException
 
@@ -5,6 +7,7 @@ from app.core.audio import sanitize_filename, validate_audio_extension
 
 
 def test_sanitize_filename():
+    """Sanitize filenames to avoid unsafe input and length issues."""
     # Basic filename
     assert sanitize_filename("test.wav") == "test.wav"
 
@@ -26,6 +29,7 @@ def test_sanitize_filename():
 
 
 def test_validate_audio_extension():
+    """Validate allowed audio extensions and reject invalid names."""
     # Valid extensions
     validate_audio_extension("test.wav")
     validate_audio_extension("test.MP3")

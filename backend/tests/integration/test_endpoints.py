@@ -1,8 +1,11 @@
+"""Integration tests for API endpoints."""
+
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
 
+from app.core.exceptions import SessionNotFoundError
 from app.main import app
 
 client = TestClient(app)
@@ -10,17 +13,20 @@ client = TestClient(app)
 
 @pytest.fixture
 def mock_session_manager():
+    """Provide a mocked session manager for endpoint tests."""
     with patch("app.api.v1.endpoints.session.session_manager") as mock:
         yield mock
 
 
 @pytest.fixture
 def mock_history_service():
+    """Provide a mocked history service for endpoint tests."""
     with patch("app.api.v1.endpoints.history.history_service") as mock:
         yield mock
 
 
 def test_start_session(mock_session_manager):
+    """Ensure session start returns the mocked session response."""
     # Setup mock
     mock_response = MagicMock()
     mock_response.session_id = "test-id"
@@ -42,10 +48,8 @@ def test_start_session(mock_session_manager):
     mock_session_manager.create_session.assert_called_once()
 
 
-from app.core.exceptions import SessionNotFoundError
-
-
 def test_process_turn_not_found(mock_session_manager):
+    """Ensure missing sessions return a 404 response."""
     mock_session_manager.process_turn = AsyncMock(
         side_effect=SessionNotFoundError("test-id")
     )
@@ -66,6 +70,7 @@ def test_process_turn_not_found(mock_session_manager):
 
 
 def test_get_history(mock_history_service):
+    """Ensure history list endpoint returns session summaries."""
     mock_history_service.get_all_sessions.return_value = [
         {
             "session_id": "1",
@@ -87,6 +92,7 @@ def test_get_history(mock_history_service):
 
 
 def test_get_history_detail(mock_history_service):
+    """Ensure history detail endpoint returns a session record."""
     mock_detail = MagicMock()
     mock_detail.session_id = "1"
     mock_detail.timestamp = "2024-01-01T00:00:00"
@@ -106,6 +112,7 @@ def test_get_history_detail(mock_history_service):
 
 
 def test_delete_history(mock_history_service):
+    """Ensure delete endpoint removes a session."""
     mock_history_service.delete_session.return_value = True
 
     response = client.delete("/api/v1/history/1")

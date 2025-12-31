@@ -1,14 +1,14 @@
-import pytest
+"""Tests for session-driven settings persistence."""
+
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.services.settings_service import settings_service
 
 client = TestClient(app)
 
 
 def test_session_persists_settings():
-    """Test that starting a session persists the session settings as user defaults."""
+    """Test session start persists settings as user defaults."""
     # Start a session with custom settings
     session_data = {
         "primary_language": "French",

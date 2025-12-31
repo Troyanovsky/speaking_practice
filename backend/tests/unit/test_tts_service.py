@@ -1,31 +1,36 @@
-import os
+"""Unit tests for TTS service synthesis behavior."""
+
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from app.services.tts_service import LANGUAGE_CONFIG, TTSService
+from app.core.exceptions import TTSError
+from app.services.tts_service import TTSService
 
 
 @pytest.fixture
 def tts_service():
+    """Provide a TTS service instance."""
     return TTSService()
 
 
 @pytest.fixture
 def mock_pipeline_class():
+    """Mock Kokoro pipeline class for synthesis tests."""
     with patch("kokoro.KPipeline") as mock:
         yield mock
 
 
 @pytest.mark.asyncio
 async def test_synthesize_success(tts_service, mock_pipeline_class):
+    """Synthesize returns static URL and uses expected parameters."""
     # Setup mock pipeline instance and generator
     mock_pipeline_instance = mock_pipeline_class.return_value
     mock_audio = MagicMock()
     mock_generator = [("gs", "ps", mock_audio)]
     mock_pipeline_instance.return_value = mock_generator
 
-    with patch("soundfile.write") as mock_write:
+    with patch("soundfile.write"):
         # Test Default (English)
         result = await tts_service.synthesize("Hello")
         assert result.startswith("/static/")
@@ -53,6 +58,7 @@ async def test_synthesize_success(tts_service, mock_pipeline_class):
 
 @pytest.mark.asyncio
 async def test_single_pipeline_caching(tts_service, mock_pipeline_class):
+    """Pipeline is cached per language and reused when possible."""
     mock_pipeline_instance = mock_pipeline_class.return_value
     mock_pipeline_instance.return_value = [("gs", "ps", MagicMock())]
 
@@ -74,17 +80,16 @@ async def test_single_pipeline_caching(tts_service, mock_pipeline_class):
 
 @pytest.mark.asyncio
 async def test_synthesize_no_model(tts_service):
+    """Missing kokoro dependency returns mock audio path."""
     # If kokoro is not installed, it falls back to mock
     with patch("kokoro.KPipeline", side_effect=ImportError):
         result = await tts_service.synthesize("Hello")
         assert result == "/static/mock_audio.wav"
 
 
-from app.core.exceptions import TTSError
-
-
 @pytest.mark.asyncio
 async def test_synthesize_error(tts_service, mock_pipeline_class):
+    """Synthesis errors raise TTSError."""
     mock_pipeline_instance = mock_pipeline_class.return_value
     mock_pipeline_instance.side_effect = Exception("TTS Error")
 

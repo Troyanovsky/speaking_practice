@@ -1,3 +1,5 @@
+"""Unit tests for session manager behavior."""
+
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -16,6 +18,7 @@ MOCK_AUDIO_URL = "http://localhost:8000/static/audio.wav"
 
 @pytest.fixture
 def mock_llm_service():
+    """Mock LLM service methods used by session manager."""
     with patch("app.services.session_manager.llm_service") as mock:
         mock.generate_greeting = AsyncMock(return_value="Hola, amigo")
         mock.get_response = AsyncMock(return_value=MOCK_AI_TEXT)
@@ -27,6 +30,7 @@ def mock_llm_service():
 
 @pytest.fixture
 def mock_asr_service():
+    """Mock ASR service transcribe behavior."""
     with patch("app.services.session_manager.asr_service") as mock:
         mock.transcribe = AsyncMock(return_value=MOCK_USER_TEXT)
         yield mock
@@ -34,6 +38,7 @@ def mock_asr_service():
 
 @pytest.fixture
 def mock_tts_service():
+    """Mock TTS service synthesize behavior."""
     with patch("app.services.session_manager.tts_service") as mock:
         mock.synthesize = AsyncMock(return_value=MOCK_AUDIO_URL)
         yield mock
@@ -41,6 +46,7 @@ def mock_tts_service():
 
 @pytest.fixture
 def mock_history_service():
+    """Mock history service persistence."""
     with patch("app.services.session_manager.history_service") as mock:
         mock.save_session = MagicMock()
         yield mock
@@ -48,6 +54,7 @@ def mock_history_service():
 
 @pytest.fixture
 def mock_cleanup_session_files():
+    """Mock cleanup helper for session files."""
     with patch("app.services.session_manager.cleanup_session_files") as mock:
         yield mock
 
@@ -60,11 +67,13 @@ def session_manager(
     mock_history_service,
     mock_cleanup_session_files,
 ):
+    """Provide a session manager with mocked dependencies."""
     return SessionManager()
 
 
 @pytest.mark.asyncio
 async def test_create_session(session_manager, mock_llm_service, mock_tts_service):
+    """Create session should initialize greeting turn and audio."""
     settings = SessionCreate(
         primary_language="English",
         target_language="Spanish",
@@ -93,6 +102,7 @@ async def test_create_session(session_manager, mock_llm_service, mock_tts_servic
 async def test_process_turn_normal(
     session_manager, mock_asr_service, mock_llm_service, mock_tts_service
 ):
+    """Process a normal user turn and return AI response."""
     # Setup active session
     settings = SessionCreate(
         primary_language="English",
@@ -120,12 +130,14 @@ async def test_process_turn_normal(
 
 @pytest.mark.asyncio
 async def test_process_turn_not_found(session_manager):
+    """Missing session id should raise SessionNotFoundError."""
     with pytest.raises(SessionNotFoundError):
         await session_manager.process_turn("non-existent-id", MOCK_AUDIO_PATH)
 
 
 @pytest.mark.asyncio
 async def test_process_turn_inactive(session_manager, mock_asr_service):
+    """Processing an inactive session should raise SessionError."""
     # Setup session
     settings = SessionCreate(
         primary_language="en", target_language="es", proficiency_level="A1"
@@ -146,6 +158,7 @@ async def test_process_turn_inactive(session_manager, mock_asr_service):
 async def test_process_turn_stop_word(
     session_manager, mock_asr_service, mock_llm_service
 ):
+    """Stop-word detection should trigger wrap-up behavior."""
     # Setup session
     settings = SessionCreate(
         primary_language="English",
@@ -175,6 +188,7 @@ async def test_process_turn_stop_word(
 async def test_end_session(
     session_manager, mock_history_service, mock_llm_service, mock_cleanup_session_files
 ):
+    """Ending a session should analyze grammar and persist history."""
     # Setup session
     settings = SessionCreate(
         primary_language="English", target_language="Spanish", proficiency_level="A1"
@@ -199,6 +213,7 @@ async def test_end_session(
 async def test_process_turn_max_turns(
     session_manager, mock_asr_service, mock_llm_service
 ):
+    """Hitting max turns should trigger a wrap-up prompt."""
     # Setup session
     settings = SessionCreate(
         primary_language="English", target_language="Spanish", proficiency_level="A1"
@@ -223,6 +238,7 @@ async def test_process_turn_max_turns(
 
 @pytest.mark.asyncio
 async def test_cleanup_expired_sessions(session_manager, mock_cleanup_session_files):
+    """Cleanup should remove expired sessions and call cleanup helper."""
     from datetime import datetime, timedelta, timezone
 
     # Create 3 sessions

@@ -1,18 +1,22 @@
-import sys
+"""Unit tests for ASR service transcription behavior."""
+
 from unittest.mock import MagicMock, patch
 
 import pytest
 
+from app.core.exceptions import ASRError
 from app.services.asr_service import ASRService
 
 
 @pytest.fixture
 def asr_service():
+    """Provide an ASR service instance."""
     return ASRService()
 
 
 @pytest.mark.asyncio
 async def test_transcribe_mac(asr_service):
+    """Transcribe on macOS returns the model text."""
     with patch("sys.platform", "darwin"):
         mock_model = MagicMock()
         mock_model.transcribe.return_value = MagicMock(text="Hello world")
@@ -25,6 +29,7 @@ async def test_transcribe_mac(asr_service):
 
 @pytest.mark.asyncio
 async def test_transcribe_win(asr_service):
+    """Transcribe on Windows handles list outputs."""
     with patch("sys.platform", "win32"):
         mock_model = MagicMock()
         # NeMo returns a list of results
@@ -38,6 +43,7 @@ async def test_transcribe_win(asr_service):
 
 @pytest.mark.asyncio
 async def test_transcribe_win_tuple(asr_service):
+    """Transcribe on Windows handles tuple outputs."""
     with patch("sys.platform", "win32"):
         mock_model = MagicMock()
         # NeMo might return a tuple with a Hypothesis-like object
@@ -53,6 +59,7 @@ async def test_transcribe_win_tuple(asr_service):
 
 @pytest.mark.asyncio
 async def test_transcribe_win_dict(asr_service):
+    """Transcribe on Windows handles list-of-dict outputs."""
     with patch("sys.platform", "win32"):
         mock_model = MagicMock()
         # NeMo might return a list of dictionaries
@@ -66,6 +73,7 @@ async def test_transcribe_win_dict(asr_service):
 
 @pytest.mark.asyncio
 async def test_transcribe_win_transcription_key(asr_service):
+    """Transcribe on Windows handles 'transcription' key outputs."""
     with patch("sys.platform", "win32"):
         mock_model = MagicMock()
         # NeMo might use 'transcription' key instead of 'text'
@@ -81,6 +89,7 @@ async def test_transcribe_win_transcription_key(asr_service):
 
 @pytest.mark.asyncio
 async def test_transcribe_win_indexable(asr_service):
+    """Transcribe on Windows handles indexable outputs."""
     with patch("sys.platform", "win32"):
         mock_model = MagicMock()
         # NeMo might return indexable objects with text as first element
@@ -94,6 +103,7 @@ async def test_transcribe_win_indexable(asr_service):
 
 @pytest.mark.asyncio
 async def test_transcribe_win_tuple_of_lists(asr_service):
+    """Transcribe on Windows handles tuple-of-list outputs."""
     with patch("sys.platform", "win32"):
         mock_model = MagicMock()
         # Actual NeMo output format: tuple containing lists
@@ -110,16 +120,15 @@ async def test_transcribe_win_tuple_of_lists(asr_service):
 
 @pytest.mark.asyncio
 async def test_transcribe_no_model(asr_service):
+    """Transcribe falls back to mock output when no model is loaded."""
     asr_service.model = None
     result = await asr_service.transcribe("dummy.wav")
     assert "mock transcription" in result
 
 
-from app.core.exceptions import ASRError
-
-
 @pytest.mark.asyncio
 async def test_transcribe_error(asr_service):
+    """Transcribe errors surface as ASRError."""
     with patch("sys.platform", "darwin"):
         mock_model = MagicMock()
         mock_model.transcribe.side_effect = Exception("ASR Error")

@@ -1,3 +1,5 @@
+"""Tests for settings endpoints and persistence."""
+
 import json
 import os
 
@@ -6,7 +8,6 @@ from fastapi.testclient import TestClient
 
 from app.core.config import settings
 from app.main import app
-from app.schemas.settings import UserSettings
 from app.services.settings_service import settings_service
 
 client = TestClient(app)

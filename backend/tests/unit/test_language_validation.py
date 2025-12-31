@@ -1,3 +1,5 @@
+"""Unit tests for language validation in settings schema."""
+
 import pytest
 from pydantic import ValidationError
 
@@ -5,28 +7,28 @@ from app.schemas.settings import UserSettings
 
 
 def test_valid_language_settings():
-    """Test that valid TTS languages are accepted"""
+    """Test that valid TTS languages are accepted."""
     settings = UserSettings(primary_language="English", target_language="Spanish")
     assert settings.primary_language == "English"
     assert settings.target_language == "Spanish"
 
 
 def test_invalid_primary_language():
-    """Test that invalid primary language is rejected"""
+    """Test that invalid primary language is rejected."""
     with pytest.raises(ValidationError) as exc_info:
         UserSettings(primary_language="German")
     assert "Primary language 'German' is not supported" in str(exc_info.value)
 
 
 def test_invalid_target_language():
-    """Test that invalid target language is rejected"""
+    """Test that invalid target language is rejected."""
     with pytest.raises(ValidationError) as exc_info:
         UserSettings(target_language="German")
     assert "Target language 'German' is not supported" in str(exc_info.value)
 
 
 def test_all_supported_languages():
-    """Test that all supported TTS languages are valid"""
+    """Test that all supported TTS languages are valid."""
     supported_languages = ["English", "Spanish", "French", "Italian", "Portuguese"]
 
     for lang in supported_languages:
@@ -40,7 +42,7 @@ def test_all_supported_languages():
 
 
 def test_mixed_valid_languages():
-    """Test combinations of different valid languages"""
+    """Test combinations of different valid languages."""
     combinations = [
         ("English", "Spanish"),
         ("French", "Italian"),
