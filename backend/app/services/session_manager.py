@@ -10,7 +10,7 @@ This module provides the SessionManager class which handles:
 
 import uuid
 from datetime import datetime, timezone
-from typing import Dict, List
+from typing import Dict, List, cast
 
 from app.core.audio import cleanup_session_files
 from app.core.exceptions import LLMError, SessionError, SessionNotFoundError, TTSError
@@ -144,7 +144,8 @@ class SessionManager:
 
     def _check_max_turns_reached(self, session: Dict) -> bool:
         """Check if max turns (15) has been reached and handle session ending."""
-        is_last_turn = session["turn_count"] >= 15
+        turn_count = cast(int, session["turn_count"])
+        is_last_turn = turn_count >= 15
 
         if is_last_turn:
             session["history"].append(
