@@ -1,81 +1,133 @@
 {
   "issues": [
     {
-      "category": "Security",
-      "description": "CORS Configuration Too Permissive",
-      "expected_behavior": "Restrict CORS origins to specific frontend domain in production configuration instead of allowing all origins",
+      "id": "BUG-001",
+      "type": "bug",
+      "epic": "Security",
+      "title": "CORS Configuration Too Permissive",
+      "description": "The current CORS configuration allows all origins, which is a security risk in production environments.",
+      "acceptance_criteria": [
+        "Restrict CORS origins to specific frontend domain in production configuration",
+        "Ensure development environment still allows localhost origins for testing",
+        "Document CORS configuration in deployment guide"
+      ],
       "passes": false
     },
     {
-      "category": "Production Bug",
-      "description": "Hardcoded Localhost URLs",
-      "expected_behavior": "Replace hardcoded localhost URLs with configurable API base URL that works in production environments",
+      "id": "BUG-002",
+      "type": "bug",
+      "epic": "Production",
+      "title": "Hardcoded Localhost URLs",
+      "description": "Multiple files contain hardcoded localhost URLs that will not work in production environments.",
+      "acceptance_criteria": [
+        "Replace all hardcoded localhost URLs with configurable API base URL",
+        "API base URL should be set via environment variable",
+        "Frontend configuration works in both development and production",
+        "Document environment variable configuration"
+      ],
       "passes": false
     },
     {
-      "category": "Backend Bug",
-      "description": "TTS Error Audio File Missing",
-      "expected_behavior": "Create or ensure error.wav file exists at /static/error.wav path, or implement proper error handling for missing error audio",
+      "id": "BUG-003",
+      "type": "bug",
+      "epic": "Audio",
+      "title": "TTS Error Audio File Missing",
+      "description": "The system references error.wav for TTS error handling, but the file may not exist at the expected path.",
+      "acceptance_criteria": [
+        "Ensure error.wav file exists at /static/error.wav path",
+        "Or implement proper fallback error handling for missing error audio",
+        "Add error handling when TTS fails to generate audio"
+      ],
       "passes": false
     },
     {
-      "category": "Backend Bug",
-      "description": "Settings File Path Construction",
-      "expected_behavior": "Fix complex relative path construction in settings_service.py to use absolute paths consistently and prevent path resolution issues",
+      "id": "BUG-004",
+      "type": "bug",
+      "epic": "Settings",
+      "title": "Settings File Path Construction",
+      "description": "Complex relative path construction in settings_service.py can cause path resolution issues.",
+      "acceptance_criteria": [
+        "Use absolute paths consistently throughout settings_service.py",
+        "Simplify path construction logic",
+        "Prevent path resolution issues across different operating systems"
+      ],
       "passes": false
     },
     {
-      "category": "Backend Bug",
-      "description": "Synchronous File Operations in Async Context",
-      "expected_behavior": "Replace synchronous file operations with async alternatives (aiofiles) to prevent blocking the event loop",
+      "id": "BUG-005",
+      "type": "bug",
+      "epic": "Performance",
+      "title": "Synchronous File Operations in Async Context",
+      "description": "Synchronous file operations in async endpoints can block the event loop and reduce performance.",
+      "acceptance_criteria": [
+        "Replace synchronous file operations with async alternatives (aiofiles)",
+        "Update all file read/write operations in async endpoints",
+        "Ensure non-blocking I/O throughout the application"
+      ],
       "passes": false
     },
     {
-      "category": "UX",
-      "description": "Add a delete all history button",
-      "expected_behavior": "Add a button to clear all chat history at once",
-      "passes": true
-    },
-    {
-      "category": "Backend Bug",
-      "description": "Session manager is injecting prompts directly during wrap up",
-      "expected_behavior": "Wrap up prompt should be handled by llm service, not session manager",
+      "id": "BUG-006",
+      "type": "bug",
+      "epic": "Session",
+      "title": "Session Manager Prompt Injection",
+      "description": "Session manager is directly injecting prompts during wrap-up instead of delegating to LLM service.",
+      "acceptance_criteria": [
+        "Wrap-up prompt should be handled by llm_service, not session_manager",
+        "Maintain clear separation of concerns between services",
+        "Ensure consistent prompt handling through LLM service"
+      ],
       "passes": false
     },
     {
-      "category": "Feature",
-      "description": "Add TTS speed setting for user preferences",
-      "expected_behavior": "Add a new user setting to control TTS speech speed (0.5-1.5 range, default 1.0). This is especially useful for beginners who may need slower speech. The Kokoro library already supports speed parameter - need to expose it in settings UI and pass it through to the TTS service.",
-      "passes": true
-    },
-    {
-      "category": "Deprecation",
-      "description": "FastAPI on_event Deprecation Warning",
-      "expected_behavior": "Replace deprecated @app.on_event('startup') and @app.on_event('shutdown') decorators in main.py with modern lifespan event handlers using context managers for better FastAPI compatibility.",
+      "id": "TASK-001",
+      "type": "task",
+      "epic": "Maintenance",
+      "title": "FastAPI on_event Deprecation Warning",
+      "description": "The deprecated @app.on_event decorators should be replaced with modern lifespan context managers.",
+      "acceptance_criteria": [
+        "Replace @app.on_event('startup') and @app.on_event('shutdown') with lifespan context manager",
+        "Ensure all startup/shutdown logic is preserved",
+        "Test application startup and shutdown behavior",
+        "Verify no deprecation warnings in logs"
+      ],
       "passes": false
     },
     {
-      "category": "Deprecation",
-      "description": "PyTorch weight_norm Deprecation Warning",
-      "expected_behavior": "Update torch.nn.utils.weight_norm usage to torch.nn.utils.parametrizations.weight_norm to address FutureWarning about deprecated weight_norm function.",
+      "id": "TASK-002",
+      "type": "task",
+      "epic": "Maintenance",
+      "title": "PyTorch weight_norm Deprecation Warning",
+      "description": "PyTorch's deprecated weight_norm function should be updated to the parametrizations version.",
+      "acceptance_criteria": [
+        "Update torch.nn.utils.weight_norm to torch.nn.utils.parametrizations.weight_norm",
+        "Ensure no functionality is broken after the change",
+        "Verify no FutureWarning in logs"
+      ],
       "passes": false
     },
     {
-      "category": "Warning",
-      "description": "PyTorch RNN Dropout Configuration Warning",
-      "expected_behavior": "Fix RNN dropout configuration warning by either setting num_layers > 1 when using dropout=0.2, or set dropout=0 when num_layers=1 to prevent misleading warning in torch/nn/modules/rnn.py.",
+      "id": "TASK-003",
+      "type": "task",
+      "epic": "Maintenance",
+      "title": "PyTorch RNN Dropout Configuration Warning",
+      "description": "Misleading RNN dropout configuration warning when num_layers=1 and dropout=0.2.",
+      "acceptance_criteria": [
+        "Fix RNN dropout configuration: either set num_layers > 1 when using dropout=0.2, or set dropout=0 when num_layers=1",
+        "Ensure model behavior is consistent with intended design",
+        "Verify no warning in logs"
+      ],
       "passes": false
     },
     {
-      "category": "Audio Bug",
-      "description": "Audio playback cuts off first word or so",
-      "expected_behavior": "Fix audio playback issue where the first word is cut off, possibly related to 206 partial content responses for audio requests. Investigate if this is a frontend buffering issue or backend HTTP range request handling problem.",
-      "passes": true
-    },
-    {
-      "category": "UX Bug",
-      "description": "Session doesn't transition to summary after wrap-up audio",
-      "expected_behavior": "After wrap-up audio completes playing, the session should automatically transition to the session summary screen. Currently no transition occurs and no backend error is visible. Investigate frontend state management and audio completion handling.",
+      "id": "BUG-007",
+      "type": "bug",
+      "epic": "Audio",
+      "title": "Audio Files Not Cleaned Up on Abnormal App Closure",
+      "description": "When the application closes abnormally (crash, force kill, system shutdown), generated audio files are not properly cleaned up, leading to disk space waste.",
+      "acceptance_criteria": [
+        "Implementing orphaned file cleanup on app startup"
+      ],
       "passes": true
     }
   ]

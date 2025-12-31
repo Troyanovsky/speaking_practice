@@ -107,3 +107,40 @@ def cleanup_session_files(session_id: str) -> None:
                     os.remove(os.path.join(settings.AUDIO_OUTPUT_DIR, filename))
                 except Exception as e:
                     print(f"Error deleting output file {filename}: {e}")
+
+
+def cleanup_orphaned_files(max_age_hours: int = 2) -> int:
+    """Clean up audio files older than specified hours.
+
+    This function handles orphaned audio files left behind when the app
+    terminates abnormally (crash, force kill, system shutdown). It's called
+    on app startup to clean up files from previous runs.
+
+    Args:
+        max_age_hours: Delete files older than this many hours (default: 2).
+
+    Returns:
+        Number of files deleted.
+    """
+    import time
+
+    from app.core.config import settings
+
+    cutoff_time = time.time() - (max_age_hours * 3600)
+    deleted_count = 0
+
+    for directory in [settings.AUDIO_UPLOAD_DIR, settings.AUDIO_OUTPUT_DIR]:
+        if not os.path.exists(directory):
+            continue
+
+        for filename in os.listdir(directory):
+            filepath = os.path.join(directory, filename)
+            try:
+                if os.path.getmtime(filepath) < cutoff_time:
+                    os.remove(filepath)
+                    deleted_count += 1
+                    print(f"Deleted orphaned file: {filepath}")
+            except Exception as e:
+                print(f"Error deleting orphaned file {filepath}: {e}")
+
+    return deleted_count

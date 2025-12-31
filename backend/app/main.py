@@ -90,12 +90,20 @@ cleanup_task = None
 async def startup_event() -> None:
     """Initialize application on startup.
 
-    Loads AI models and starts the background session cleanup task.
+    Loads AI models, cleans up orphaned audio files, and starts
+    the background session cleanup task.
     """
     print("Starting up... Loading AI models.")
     asr_service.load_model()
     tts_service.load_model()
     print("AI models loaded.")
+
+    # Clean up orphaned audio files from previous crashes/abnormal termination
+    from app.core.audio import cleanup_orphaned_files
+
+    deleted_count = cleanup_orphaned_files(max_age_hours=2)
+    if deleted_count > 0:
+        print(f"Cleaned up {deleted_count} orphaned audio file(s) from previous runs.")
 
     # Start session cleanup background task
     global cleanup_task
