@@ -60,52 +60,44 @@ class ASRService:
         """Transcribe audio using NeMo on Windows/Linux."""
         assert self.model is not None, "Model must be loaded to transcribe"
         output: Any = self.model.transcribe([audio_path])
-
-        # Handle NeMo's actual output format: tuple of lists
-        # Based on investigation, NeMo returns: (["transcription"], ["transcription"])
-        if isinstance(output, tuple) and len(output) > 0:
-            # First element is typically a list with the transcription
-            first_element: Any = output[0]
-            if isinstance(first_element, list) and len(first_element) > 0:
-                transcription: Any = first_element[0]
-                if isinstance(transcription, str):
-                    return transcription
-
-            # Fallback: check if first element is directly a string
-            if isinstance(first_element, str):
-                return first_element
-
-            # Handle tuple with Hypothesis objects
-            if hasattr(first_element, "text"):
-                return str(first_element.text)
-
-        # Fallback for other possible formats
-        elif isinstance(output, list) and len(output) > 0:
-            first_item: Any = output[0]
-
-            # Handle list of strings
-            if isinstance(first_item, str):
-                return first_item
-            # Handle list with text as first element
-            elif (
-                isinstance(first_item, list)
-                and len(first_item) > 0
-                and isinstance(first_item[0], str)
-            ):
-                return first_item[0]
-            # Handle Hypothesis objects
-            elif hasattr(first_item, "text"):
-                return str(first_item.text)
-            # Handle dictionary format
-            elif isinstance(first_item, dict):
-                if "text" in first_item:
-                    return str(first_item["text"])
-                elif "transcription" in first_item:
-                    return str(first_item["transcription"])
+        transcription = self._extract_nemo_transcription(output)
+        if transcription is not None:
+            return transcription
 
         raise ASRError(
-            message=f"NeMo returned unexpected output: {type(output)}, content: {str(output)[:200]}"
+            message=(
+                f"NeMo returned unexpected output: {type(output)}, content: "
+                f"{str(output)[:200]}"
+            )
         )
+
+    def _extract_nemo_transcription(self, output: Any) -> Optional[str]:
+        """Extract transcription text from NeMo output."""
+        if isinstance(output, tuple) and len(output) > 0:
+            return self._extract_nemo_item(output[0])
+
+        if isinstance(output, list) and len(output) > 0:
+            return self._extract_nemo_item(output[0])
+
+        return None
+
+    def _extract_nemo_item(self, item: Any) -> Optional[str]:
+        """Normalize a single NeMo output element into text."""
+        result: Optional[str] = None
+        if isinstance(item, list) and len(item) > 0:
+            item = item[0]
+
+        if isinstance(item, str):
+            result = item
+        elif hasattr(item, "text"):
+            result = str(item.text)
+        elif isinstance(item, dict):
+            if "text" in item:
+                result = str(item["text"])
+            elif "transcription" in item:
+                result = str(item["transcription"])
+
+        return result
 
     async def transcribe(self, audio_path: str) -> str:
         """Transcribe audio file to text.
@@ -120,10 +112,13 @@ class ASRService:
             ASRError: If transcription fails.
         """
         if self.model is None:
-            # For development, we might still want to return mock text instead of crashing
-            # But the issue says "strict error logging and specific error codes"
-            # Let's raise an error if model is missing in a way that suggests a configuration issue
-            return "This is a mock transcription (ASR libraries missing or model not loaded)."
+            # For development, we might still want to return mock text instead of
+            # crashing. The issue says "strict error logging and specific error
+            # codes"; this suggests a configuration issue for missing models.
+            return (
+                "This is a mock transcription (ASR libraries missing or model not "
+                "loaded)."
+            )
 
         try:
             IS_MAC = sys.platform == "darwin"

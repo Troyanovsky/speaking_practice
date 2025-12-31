@@ -41,9 +41,10 @@ def validate_audio_extension(filename: str | None) -> None:
 
     _, ext = os.path.splitext(filename.lower())
     if ext not in ALLOWED_AUDIO_EXTENSIONS:
+        allowed_extensions = ", ".join(ALLOWED_AUDIO_EXTENSIONS)
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid file extension. Allowed: {', '.join(ALLOWED_AUDIO_EXTENSIONS)}",
+            detail=f"Invalid file extension. Allowed: {allowed_extensions}",
         )
 
 
@@ -90,23 +91,23 @@ def cleanup_session_files(session_id: str) -> None:
     # Sanitize session_id just in case
     safe_session_id = sanitize_filename(session_id)
 
-    # Check upload directory
-    if os.path.exists(settings.AUDIO_UPLOAD_DIR):
-        for filename in os.listdir(settings.AUDIO_UPLOAD_DIR):
-            if filename.startswith(safe_session_id):
-                try:
-                    os.remove(os.path.join(settings.AUDIO_UPLOAD_DIR, filename))
-                except Exception as e:
-                    print(f"Error deleting upload file {filename}: {e}")
+    _delete_session_files(settings.AUDIO_UPLOAD_DIR, safe_session_id, "upload")
+    _delete_session_files(settings.AUDIO_OUTPUT_DIR, safe_session_id, "output")
 
-    # Check output directory
-    if os.path.exists(settings.AUDIO_OUTPUT_DIR):
-        for filename in os.listdir(settings.AUDIO_OUTPUT_DIR):
-            if filename.startswith(safe_session_id):
-                try:
-                    os.remove(os.path.join(settings.AUDIO_OUTPUT_DIR, filename))
-                except Exception as e:
-                    print(f"Error deleting output file {filename}: {e}")
+
+def _delete_session_files(directory: str, safe_session_id: str, label: str) -> None:
+    """Remove files for a session from a specific directory."""
+    if not os.path.exists(directory):
+        return
+
+    for filename in os.listdir(directory):
+        if not filename.startswith(safe_session_id):
+            continue
+        file_path = os.path.join(directory, filename)
+        try:
+            os.remove(file_path)
+        except Exception as exc:
+            print(f"Error deleting {label} file {filename}: {exc}")
 
 
 def cleanup_orphaned_files(max_age_hours: int = 2) -> int:

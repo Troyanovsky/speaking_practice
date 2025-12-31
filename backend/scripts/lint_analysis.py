@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-"""
-Comprehensive linting analysis script.
+"""Comprehensive linting analysis script.
+
 Shows function lengths, file lengths, and other metrics.
 """
 
 import ast
-import os
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -13,12 +12,14 @@ from typing import Any, Dict, List
 class FunctionLengthVisitor(ast.NodeVisitor):
     """AST visitor to analyze function lengths."""
 
-    def __init__(self, max_length: int = 50):
+    def __init__(self, max_length: int = 50) -> None:
+        """Initialize visitor with the maximum allowed function length."""
         self.max_length = max_length
         self.violations: List[Dict[str, Any]] = []
         self.current_file = ""
 
-    def visit_FunctionDef(self, node):
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        """Track synchronous function lengths."""
         start_line = node.lineno
         end_line = (
             node.end_lineno
@@ -40,7 +41,8 @@ class FunctionLengthVisitor(ast.NodeVisitor):
 
         self.generic_visit(node)
 
-    def visit_AsyncFunctionDef(self, node):
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
+        """Track async function lengths."""
         start_line = node.lineno
         end_line = (
             node.end_lineno
@@ -66,7 +68,7 @@ class FunctionLengthVisitor(ast.NodeVisitor):
 def analyze_file_lengths(
     app_dir: Path, max_file_length: int = 300
 ) -> List[Dict[str, Any]]:
-    """Analyze file lengths."""
+    """Analyze file lengths in the target directory."""
     violations = []
 
     for py_file in app_dir.rglob("*.py"):
@@ -117,8 +119,8 @@ def analyze_function_lengths(
     return violations
 
 
-def main():
-    """Main analysis function."""
+def main() -> int:
+    """Run linting analysis."""
     app_dir = Path("app")
 
     if not app_dir.exists():
@@ -136,7 +138,8 @@ def main():
     if file_violations:
         for violation in file_violations:
             print(
-                f"❌ {violation['file']}: {violation['length']} lines (max: {violation['max_allowed']})"
+                f"❌ {violation['file']}: {violation['length']} lines "
+                f"(max: {violation['max_allowed']})"
             )
     else:
         print("✅ All files within length limits")
@@ -150,7 +153,9 @@ def main():
         for violation in func_violations:
             func_type = "async" if violation["type"] == "AsyncFunctionDef" else "sync"
             print(
-                f"❌ {violation['file']}:{violation['line']} - {violation['function']} ({func_type}): {violation['length']} lines"
+                f"❌ {violation['file']}:{violation['line']} - "
+                f"{violation['function']} ({func_type}): "
+                f"{violation['length']} lines"
             )
     else:
         print("✅ All functions within length limits")

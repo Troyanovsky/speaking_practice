@@ -12,6 +12,7 @@ This module initializes the FastAPI application with:
 import asyncio
 import logging
 import os
+from typing import Optional
 
 import uvicorn
 from fastapi import FastAPI, Request
@@ -34,6 +35,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title=settings.PROJECT_NAME)
+cleanup_task: Optional[asyncio.Task] = None
 
 
 @app.exception_handler(AppException)
@@ -117,7 +119,6 @@ async def shutdown_event() -> None:
     Cancels the background session cleanup task.
     """
     print("Shutting down... cancelling background tasks.")
-    global cleanup_task
     if cleanup_task and not cleanup_task.done():
         cleanup_task.cancel()
         try:

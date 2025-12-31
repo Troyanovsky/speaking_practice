@@ -95,18 +95,23 @@ class LLMService:
         # Get a predefined topic for the proficiency level
         topic = get_topic_for_level(proficiency_level)
 
-        system_prompt = f"""You are a helpful language learning assistant for {target_language} at {proficiency_level} level. Your name is Luna.
-
-Generate a friendly greeting that:
-1. Welcomes the user warmly
-2. Suggests the following conversation topic: "{topic}"
-3. Asks an opening question to start the practice
-
-Keep your response appropriate for a {proficiency_level} learner. Keep the greeting short and to the point.
-
-CRITICAL: You MUST respond EXCLUSIVELY in {target_language}. All parts of your response (greeting, topic suggestion, and question) must be in {target_language}. Keep the greeting concise (2-3 sentences).
-
-DO NOT use any markdown formatting such as bold (**text**), italics (*text*), or lists. Return only pure text sentences."""
+        system_prompt = (
+            "You are a helpful language learning assistant for "
+            f"{target_language} at {proficiency_level} level. Your name is Luna.\n\n"
+            "Generate a friendly greeting that:\n"
+            "1. Welcomes the user warmly\n"
+            f'2. Suggests the following conversation topic: "{topic}"\n'
+            "3. Asks an opening question to start the practice\n\n"
+            "Keep your response appropriate for a "
+            f"{proficiency_level} learner. "
+            "Keep the greeting short and to the point.\n\n"
+            "CRITICAL: You MUST respond EXCLUSIVELY in "
+            f"{target_language}. All parts of your response (greeting, topic "
+            "suggestion, and question) must be in "
+            f"{target_language}. Keep the greeting concise (2-3 sentences).\n\n"
+            "DO NOT use any markdown formatting such as bold (**text**), italics "
+            "(*text*), or lists. Return only pure text sentences."
+        )
 
         try:
             response = await client.chat.completions.create(
@@ -117,7 +122,10 @@ DO NOT use any markdown formatting such as bold (**text**), italics (*text*), or
                     ),
                     ChatCompletionUserMessageParam(
                         role="user",
-                        content=f"Generate a greeting to start the practice session in {target_language} about the topic: {topic}",
+                        content=(
+                            "Generate a greeting to start the practice session in "
+                            f"{target_language} about the topic: {topic}"
+                        ),
                     ),
                 ],
             )
@@ -147,14 +155,17 @@ DO NOT use any markdown formatting such as bold (**text**), italics (*text*), or
         """
         client, model = self._get_client()
 
-        system_prompt = f"""You are a helpful language learning assistant named Luna, helping a user practice {target_language} at {proficiency_level} level.
-
-Adjust your language complexity to match their proficiency.
-
-Keep your responses concise (2-3 sentences max) and natural (as if talking to a friend). Encourage the user to speak more.
-CRITICAL: You MUST respond EXCLUSIVELY in {target_language}. Do not use any other language.
-
-DO NOT use any markdown formatting such as bold (**text**), italics (*text*), or lists. Return only pure text sentences."""
+        system_prompt = (
+            "You are a helpful language learning assistant named Luna, helping a "
+            f"user practice {target_language} at {proficiency_level} level.\n\n"
+            "Adjust your language complexity to match their proficiency.\n\n"
+            "Keep your responses concise (2-3 sentences max) and natural (as if "
+            "talking to a friend). Encourage the user to speak more.\n"
+            "CRITICAL: You MUST respond EXCLUSIVELY in "
+            f"{target_language}. Do not use any other language.\n\n"
+            "DO NOT use any markdown formatting such as bold (**text**), italics "
+            "(*text*), or lists. Return only pure text sentences."
+        )
 
         messages: List[
             ChatCompletionSystemMessageParam
@@ -203,28 +214,33 @@ DO NOT use any markdown formatting such as bold (**text**), italics (*text*), or
             LLMError: If analysis fails.
         """
         client, model = self._get_client()
-        prompt = f"""
-        Analyze the user's grammar and vocabulary in the following conversation where they are practicing {target_language}.
-
-        IMPORTANT LANGUAGE REQUIREMENTS:
-        - The "summary" field MUST be in {primary_language}
-        - The "explanation" field in each feedback item MUST be in {primary_language}
-        - The "original_sentence" and "corrected_sentence" fields MUST be in {target_language} (the language being learned)
-
-        Return a JSON object with the following structure:
-        {{
-            "summary": "Overall summary of performance in {primary_language}",
-            "feedback": [
-                {{
-                    "original_sentence": "User's exact original sentence with error (in {target_language})",
-                    "corrected_sentence": "Corrected user sentence (in {target_language})",
-                    "explanation": "Brief explanation of the error in {primary_language}"
-                }}
-            ]
-        }}
-        Only include feedback for sentences that actually have errors or could be improved naturally.
-        Focus on user messages (role: "user") when analyzing grammar.
-        """
+        prompt = (
+            "Analyze the user's grammar and vocabulary in the following conversation "
+            f"where they are practicing {target_language}.\n\n"
+            "IMPORTANT LANGUAGE REQUIREMENTS:\n"
+            f'- The "summary" field MUST be in {primary_language}\n'
+            f'- The "explanation" field in each feedback item MUST be in '
+            f"{primary_language}\n"
+            '- The "original_sentence" and "corrected_sentence" fields MUST be in '
+            f"{target_language} (the language being learned)\n\n"
+            "Return a JSON object with the following structure:\n"
+            "{\n"
+            f'    "summary": "Overall summary of performance in {primary_language}",\n'
+            '    "feedback": [\n'
+            "        {\n"
+            '            "original_sentence": "User\'s exact original sentence with '
+            f'error (in {target_language})",\n'
+            '            "corrected_sentence": "Corrected user sentence (in '
+            f'{target_language})",\n'
+            '            "explanation": "Brief explanation of the error in '
+            f'{primary_language}"\n'
+            "        }\n"
+            "    ]\n"
+            "}\n"
+            "Only include feedback for sentences that actually have errors or could "
+            "be improved naturally.\n"
+            'Focus on user messages (role: "user") when analyzing grammar.'
+        )
 
         conversation_text = "\n".join([f"{h['role']}: {h['content']}" for h in history])
 

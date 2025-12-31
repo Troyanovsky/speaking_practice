@@ -114,7 +114,10 @@ class SessionManager:
         session["history"].append({"role": "user", "content": user_text})
 
         # Generate wrap-up message
-        wrap_up_prompt = "The user has decided to stop the session. Please provide a brief, polite wrap-up message in the target language."
+        wrap_up_prompt = (
+            "The user has decided to stop the session. Please provide a brief, "
+            "polite wrap-up message in the target language."
+        )
         session["history"].append({"role": "system", "content": wrap_up_prompt})
 
         ai_text = await llm_service.get_response(
@@ -147,7 +150,11 @@ class SessionManager:
             session["history"].append(
                 {
                     "role": "system",
-                    "content": "This is the final turn of the conversation. Please provide a natural closing message to wrap up the session in the target language.",
+                    "content": (
+                        "This is the final turn of the conversation. Please provide "
+                        "a natural closing message to wrap up the session in the "
+                        "target language."
+                    ),
                 }
             )
             session["is_active"] = False
@@ -197,7 +204,7 @@ class SessionManager:
         """
         session = self.sessions.get(session_id)
         if not session:
-            raise SessionNotFoundError(session_id)
+            raise SessionNotFoundError.from_session_id(session_id)
 
         if not session["is_active"]:
             raise SessionError(message="Cannot process turn on an inactive session")
@@ -238,7 +245,7 @@ class SessionManager:
         """
         session = self.sessions.get(session_id)
         if not session:
-            raise SessionNotFoundError(session_id)
+            raise SessionNotFoundError.from_session_id(session_id)
 
         session["is_active"] = False
         analysis = await llm_service.analyze_grammar(
@@ -280,13 +287,16 @@ class SessionManager:
         """
         session = self.sessions.get(session_id)
         if not session:
-            raise SessionNotFoundError(session_id)
+            raise SessionNotFoundError.from_session_id(session_id)
 
         if not session["is_active"]:
             raise SessionError(message="Cannot stop an inactive session")
 
         # Generate wrap-up message
-        wrap_up_prompt = "The user has decided to stop the session. Please provide a brief, polite wrap-up message in the target language."
+        wrap_up_prompt = (
+            "The user has decided to stop the session. Please provide a brief, "
+            "polite wrap-up message in the target language."
+        )
         session["history"].append({"role": "system", "content": wrap_up_prompt})
 
         ai_text = await llm_service.get_response(
@@ -343,7 +353,8 @@ class SessionManager:
         for session_id, session in self.sessions.items():
             last_activity = session.get("last_activity")
             if not last_activity:
-                # Fallback for sessions created before this change (if any exist in long-running process)
+                # Fallback for sessions created before this change in long-running
+                # processes.
                 expired_ids.append(session_id)
                 continue
 
