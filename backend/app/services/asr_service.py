@@ -52,11 +52,13 @@ class ASRService:
 
     def _transcribe_mac(self, audio_path: str) -> str:
         """Transcribe audio using Parakeet MLX on macOS."""
+        assert self.model is not None, "Model must be loaded to transcribe"
         result: Any = self.model.transcribe(audio_path)
         return str(result.text)
 
     def _transcribe_nemo(self, audio_path: str) -> str:
         """Transcribe audio using NeMo on Windows/Linux."""
+        assert self.model is not None, "Model must be loaded to transcribe"
         output: Any = self.model.transcribe([audio_path])
 
         # Handle NeMo's actual output format: tuple of lists

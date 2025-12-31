@@ -129,6 +129,89 @@
         "Implementing orphaned file cleanup on app startup"
       ],
       "passes": true
+    },
+    {
+      "id": "BUG-008",
+      "type": "bug",
+      "epic": "Code Quality",
+      "title": "Type Checking Errors in ASR Service",
+      "description": "mypy detected 2 type checking errors in app/services/asr_service.py related to potential None attribute access on ASR model transcribe method.",
+      "acceptance_criteria": [
+        "Fix lines 55 and 60 in asr_service.py to handle None ASR model properly",
+        "Add proper null checks or type guards before accessing transcribe method",
+        "Ensure mypy passes without errors"
+      ],
+      "passes": true
+    },
+    {
+      "id": "BUG-009",
+      "type": "bug",
+      "epic": "Code Quality",
+      "title": "Exception Classes Don't Follow Best Practices",
+      "description": "8 custom exception classes in app/core/exceptions.py don't properly pass args to super().__init__(), causing issues with pickle and copy.copy(). Missing docstrings in __init__ methods.",
+      "acceptance_criteria": [
+        "Update all 8 exception classes to pass all args to super().__init__()",
+        "Add docstrings to all exception __init__ methods",
+        "Ensure exceptions work correctly with pickle and copy modules"
+      ],
+      "passes": false
+    },
+    {
+      "id": "TASK-004",
+      "type": "task",
+      "epic": "Code Quality",
+      "title": "Fix Line Length Violations",
+      "description": "Approximately 85 lines across the codebase exceed the 88-character limit defined in flake8 configuration. Main issues in llm_service.py, session_manager.py, and asr_service.py.",
+      "acceptance_criteria": [
+        "Break up all lines exceeding 88 characters to comply with flake8 E501 rule",
+        "Prioritize llm_service.py, session_manager.py, and asr_service.py files",
+        "Ensure code remains readable after refactoring",
+        "Verify flake8 passes with no E501 errors"
+      ],
+      "passes": false
+    },
+    {
+      "id": "TASK-005",
+      "type": "task",
+      "epic": "Code Quality",
+      "title": "Refactor Complex ASR Transcribe Function",
+      "description": "The _transcribe_nemo function in asr_service.py has 8 return statements, exceeding the maximum allowed 3 (CFQ004 rule). This indicates high cyclomatic complexity.",
+      "acceptance_criteria": [
+        "Refactor _transcribe_nemo to reduce return statements to 3 or fewer",
+        "Extract error handling logic into separate helper functions if needed",
+        "Maintain all existing functionality and error handling",
+        "Ensure flake8 CFQ004 check passes"
+      ],
+      "passes": false
+    },
+    {
+      "id": "TASK-006",
+      "type": "task",
+      "epic": "Testing",
+      "title": "Add Missing Docstrings to Test Files",
+      "description": "All test files are missing module and function docstrings (D100, D103 violations). Additionally, there are unused imports (F401) and imports not at top of file (E402).",
+      "acceptance_criteria": [
+        "Add module docstrings to all test files",
+        "Add function docstrings to all test functions",
+        "Remove unused imports (F401 violations)",
+        "Move imports to top of files (E402 violations)",
+        "Ensure all test files pass flake8 docstring checks"
+      ],
+      "passes": false
+    },
+    {
+      "id": "TASK-007",
+      "type": "task",
+      "epic": "Code Quality",
+      "title": "Fix Linting Issues in Scripts and Test Files",
+      "description": "Various linting issues in scripts/lint_analysis.py and test files including unused imports, missing docstrings, and line length violations.",
+      "acceptance_criteria": [
+        "Remove unused imports from lint_analysis.py and test files",
+        "Add missing docstrings to lint_analysis.py classes and methods",
+        "Fix line length issues in lint_analysis.py",
+        "Ensure all scripts and tests pass flake8 checks"
+      ],
+      "passes": false
     }
   ]
 }
