@@ -154,7 +154,7 @@
         "Add docstrings to all exception __init__ methods",
         "Ensure exceptions work correctly with pickle and copy modules"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "TASK-004",
